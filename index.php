@@ -4,8 +4,8 @@ session_start();
 
 // Enable SQLite database
 define('DB_FILE', 'licenses.db');
-define('ADMIN_USERNAME', '123');
-define('ADMIN_PASSWORD', '123'); // Change this to a strong password!
+define('ADMIN_USERNAME', '11112222');
+define('ADMIN_PASSWORD', '11112222'); // Change this to a strong password!
 
 // Check if user is logged in
 function isLoggedIn() {
@@ -358,8 +358,8 @@ function showLoginPage() {
                 </form>
                 
                 <div class="login-footer">
-                    <p>Default credentials: <code>admin / admin123</code></p>
-                    <p style="font-size: 12px; margin-top: 10px; color: #e74c3c;">⚠️ Change the password in index.php file!</p>
+                    
+                    <p style="font-size: 12px; margin-top: 10px; color: #e74c3c;">⚠️ Telegram : ZEAHONGMOD </p>
                 </div>
             </div>
         </div>
