@@ -1,5 +1,4 @@
 <?php
-// Start session for user management
 session_start();
 
 // Download URLs for each product
@@ -41,17 +40,16 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             min-height: 100vh;
         }
 
-        /* Login Page Styles (Hidden when logged in) */
+        /* Login Page Styles (Your Original Design) */
         .login-page {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
         }
 
-        .login-container {
+        .container {
             width: 100%;
             max-width: 400px;
             background: rgba(255, 255, 255, 0.95);
@@ -60,29 +58,29 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             overflow: hidden;
         }
 
-        .login-header {
+        .header {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
 
-        .login-logo {
+        .logo {
             font-size: 2.5rem;
             margin-bottom: 10px;
         }
 
-        .login-header h1 {
+        .header h1 {
             font-size: 1.8rem;
             font-weight: 600;
         }
 
-        .login-header p {
+        .header p {
             opacity: 0.9;
             margin-top: 5px;
         }
 
-        .login-content {
+        .content {
             padding: 40px 30px;
         }
 
@@ -153,6 +151,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-secondary {
@@ -251,6 +253,18 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             text-decoration: underline;
         }
 
+        .powered-by {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .powered-by span {
+            color: #6a11cb;
+            font-weight: 600;
+        }
+
         .admin-note {
             text-align: center;
             margin-top: 20px;
@@ -271,46 +285,79 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             text-decoration: underline;
         }
 
-        /* Dashboard Styles (Hidden when not logged in) */
+        /* Dashboard (Your Original Download Page Design) */
         .dashboard {
             display: none;
             min-height: 100vh;
+            padding: 20px;
         }
 
-        /* Dashboard Header */
+        .dashboard .container {
+            max-width: 1200px;
+            background: transparent;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        /* Header for Dashboard */
         .dashboard-header {
             background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
             color: white;
-            padding: 20px;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.2rem;
+            color: #a0c8e0;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* User Info in Header */
+        .user-header-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .dashboard-header-left h1 {
-            font-size: 1.8rem;
+        .user-welcome {
+            text-align: left;
+        }
+
+        .user-welcome h3 {
+            font-size: 1.4rem;
             margin-bottom: 5px;
         }
 
-        .dashboard-header-left p {
-            color: #ecf0f1;
-            opacity: 0.9;
-            font-size: 14px;
+        .user-welcome p {
+            color: #a0c8e0;
+            font-size: 0.9rem;
         }
 
-        .user-info {
-            background: rgba(255,255,255,0.1);
-            padding: 12px 20px;
-            border-radius: 10px;
+        .user-actions {
             display: flex;
+            gap: 15px;
             align-items: center;
-            gap: 10px;
         }
 
-        .user-avatar-small {
-            width: 40px;
-            height: 40px;
+        .user-avatar {
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             border-radius: 50%;
             display: flex;
@@ -318,25 +365,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             justify-content: center;
             color: white;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
         }
 
-        .user-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .user-email {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .btn-logout {
+        .logout-btn {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
             border: none;
@@ -345,130 +377,103 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            margin-left: 10px;
         }
 
-        .btn-logout:hover {
+        .logout-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
 
-        /* Dashboard Content */
-        .dashboard-content {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .welcome-message {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-            border-left: 5px solid #4dabf7;
-        }
-
-        .welcome-message h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: #fff;
-        }
-
-        .welcome-message p {
-            color: #a0c8e0;
-            font-size: 1.1rem;
-        }
-
-        /* Cards Grid */
-        .cards-grid {
+        /* Download Grid (Your Original Design) */
+        .download-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
-            margin-bottom: 50px;
+            padding: 20px;
         }
 
-        @media (max-width: 1100px) {
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Card 1: Downloads */
-        .downloads-card {
+        .download-card {
             background: rgba(25, 40, 50, 0.85);
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: 1px solid rgba(64, 128, 192, 0.3);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
-        .downloads-card h2 {
-            font-size: 1.8rem;
-            color: #fff;
-            margin-bottom: 25px;
+        .download-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border-color: rgba(64, 128, 192, 0.6);
+        }
+
+        .card-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .downloads-card h2 i {
+        .card-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
             color: #4dabf7;
         }
 
-        .download-items {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
         }
 
-        .download-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #4dabf7;
-        }
-
-        .download-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .card-price {
+            font-size: 1.5rem;
+            color: #4dabf7;
             margin-bottom: 15px;
-        }
-
-        .download-item-title {
-            font-size: 1.3rem;
-            color: #fff;
             font-weight: 600;
         }
 
-        .download-item-price {
-            background: #4dabf7;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .download-item-features {
-            list-style: none;
-            margin-bottom: 15px;
-        }
-
-        .download-item-features li {
-            padding: 5px 0;
-            position: relative;
-            padding-left: 20px;
+        .card-price span {
+            font-size: 1rem;
             color: #a0c8e0;
         }
 
-        .download-item-features li:before {
+        .features-list {
+            list-style: none;
+            margin-bottom: 25px;
+            flex-grow: 1;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .features-list li:before {
             content: "✓";
             position: absolute;
             left: 0;
             color: #4CAF50;
             font-weight: bold;
+        }
+
+        .file-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #a0c8e0;
+        }
+
+        .file-info i {
+            margin-right: 8px;
+            color: #4dabf7;
         }
 
         .download-btn {
@@ -477,128 +482,97 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             background: linear-gradient(to right, #2193b0, #6dd5ed);
             color: white;
             text-decoration: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: all 0.3s;
-            margin-top: 10px;
+            padding: 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(33, 147, 176, 0.4);
         }
 
         .download-btn:hover {
             background: linear-gradient(to right, #1b7a93, #5bc0de);
+            box-shadow: 0 7px 20px rgba(33, 147, 176, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(33, 147, 176, 0.4);
         }
 
-        /* Card 2: License Key */
+        .download-btn i {
+            margin-right: 10px;
+        }
+
+        .instructions {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #a0c8e0;
+            text-align: center;
+        }
+
+        /* License Card */
+        .license-section {
+            margin: 40px 0;
+            padding: 20px;
+        }
+
         .license-card {
             background: rgba(25, 40, 50, 0.85);
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(75, 181, 67, 0.3);
+            margin-top: 20px;
         }
 
-        .license-card h2 {
-            font-size: 1.8rem;
-            color: #fff;
-            margin-bottom: 25px;
+        .license-header {
             display: flex;
             align-items: center;
-            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .license-card h2 i {
+        .license-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
             color: #4bb543;
         }
 
-        .license-info {
+        .license-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .license-key-box {
             background: rgba(0, 0, 0, 0.3);
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 25px;
             text-align: center;
+            border: 2px dashed #4bb543;
         }
 
         .license-key-display {
             font-family: 'Courier New', monospace;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
-            letter-spacing: 2px;
-            border: 2px dashed #4bb543;
+            letter-spacing: 3px;
             color: #4bb543;
             font-weight: bold;
-        }
-
-        .license-status {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-        }
-
-        .status-item {
-            text-align: center;
-            flex: 1;
-        }
-
-        .status-label {
-            font-size: 0.9rem;
-            color: #a0c8e0;
-            margin-bottom: 5px;
-        }
-
-        .status-value {
-            font-size: 1.2rem;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .status-value.active {
-            color: #4bb543;
-        }
-
-        .status-value.expired {
-            color: #e74c3c;
-        }
-
-        .license-instructions {
-            background: rgba(75, 181, 67, 0.1);
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 25px;
-            border-left: 4px solid #4bb543;
-        }
-
-        .license-instructions h3 {
-            color: #fff;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-
-        .license-instructions ol {
-            color: #a0c8e0;
-            padding-left: 20px;
-            margin-top: 10px;
-        }
-
-        .license-instructions li {
-            margin-bottom: 8px;
+            word-break: break-all;
         }
 
         .copy-btn {
             width: 100%;
-            padding: 15px;
+            padding: 16px;
             background: linear-gradient(135deg, #4bb543 0%, #3a9d32 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
@@ -615,20 +589,59 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             box-shadow: 0 5px 15px rgba(75, 181, 67, 0.4);
         }
 
-        /* Footer */
-        .dashboard-footer {
+        .copy-btn:disabled {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            cursor: not-allowed;
+        }
+
+        .license-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
             text-align: center;
-            padding: 30px 20px;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #a0c8e0;
+            margin-bottom: 10px;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .info-value.active {
+            color: #4bb543;
+        }
+
+        .info-value.expired {
+            color: #e74c3c;
+        }
+
+        /* Footer (Your Original Design) */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 40px;
             color: #a0c8e0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 50px;
         }
 
         .footer-links {
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin: 20px 0;
+            margin-top: 20px;
             flex-wrap: wrap;
         }
 
@@ -644,7 +657,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         /* Admin Panel Link */
         .admin-panel-link {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
             background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
             color: white;
@@ -664,15 +677,54 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(39, 174, 96, 0.6);
         }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .download-grid {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            
+            .dashboard-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .user-header-info {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .download-card {
+                padding: 20px;
+            }
+            
+            .license-key-display {
+                font-size: 1.3rem;
+                padding: 15px;
+            }
+            
+            .admin-panel-link {
+                position: static;
+                display: block;
+                margin: 20px auto;
+                width: fit-content;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Admin Panel Link (Always visible) -->
+    <a href="licenses.php" class="admin-panel-link">
+        <i class="fas fa-user-shield"></i> Admin Panel
+    </a>
+
     <!-- Login Page (Initially shown) -->
     <div class="login-page" id="loginPage">
-        <div class="login-container">
+        <div class="container">
             <!-- Header -->
-            <div class="login-header">
-                <div class="login-logo">
+            <div class="header">
+                <div class="logo">
                     <i class="fas fa-user-shield"></i>
                 </div>
                 <h1>Zeahong Trading</h1>
@@ -680,7 +732,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             </div>
 
             <!-- Content Area -->
-            <div class="login-content">
+            <div class="content">
                 <!-- Messages -->
                 <div class="message info" id="infoMessage">
                     <i class="fas fa-info-circle"></i> Initializing system...
@@ -720,6 +772,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     
                     <div class="admin-note">
                         Admin? <a href="licenses.php">Login to Admin Panel</a>
+                    </div>
+                    
+                    <div class="powered-by">
+                        Powered by <span>Firebase</span> • Secure Authentication
                     </div>
                 </div>
 
@@ -792,110 +848,37 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
     <!-- Dashboard (Hidden until login) -->
     <div class="dashboard" id="dashboard">
-        <!-- Admin Panel Link -->
-        <a href="licenses.php" class="admin-panel-link">
-            <i class="fas fa-user-shield"></i> Admin Panel
-        </a>
-
-        <!-- Header -->
-        <header class="dashboard-header">
-            <div class="dashboard-header-left">
-                <h1><i class="fas fa-tachometer-alt"></i> Zeahong Trading Dashboard</h1>
-                <p>Welcome to your trading tools and license management center</p>
-            </div>
-            
-            <div class="header-right">
-                <div class="user-info" id="userInfoDisplay">
-                    <!-- User info will be populated by JavaScript -->
-                </div>
-                <button class="btn-logout" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </header>
-
-        <!-- Dashboard Content -->
-        <div class="dashboard-content">
-            <!-- Welcome Message -->
-            <div class="welcome-message">
-                <h2>Welcome, <span id="welcomeUserName">User</span>!</h2>
-                <p>Access your trading tools and manage your EA license key below</p>
-            </div>
-
-            <!-- Cards Grid -->
-            <div class="cards-grid">
-                <!-- Card 1: Downloads -->
-                <div class="downloads-card">
-                    <h2><i class="fas fa-download"></i> Trading Tools Download</h2>
-                    
-                    <div class="download-items">
-                        <!-- Trading VPS -->
-                        <div class="download-item">
-                            <div class="download-item-header">
-                                <div class="download-item-title">Trading VPS</div>
-                                <div class="download-item-price">$13.00/month</div>
-                            </div>
-                            <ul class="download-item-features">
-                                <li>12-24 GB RAM for strong performance</li>
-                                <li>24/7 uptime for bot trading</li>
-                                <li>Pre-installed MT5</li>
-                                <li>Remote Desktop access (RDP)</li>
-                            </ul>
-                            <div class="file-info">
-                                <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?>
-                            </div>
-                            <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
-                                <i class="fas fa-download"></i> Download VPS Setup
-                            </a>
-                        </div>
-
-                        <!-- Trading Robot -->
-                        <div class="download-item">
-                            <div class="download-item-header">
-                                <div class="download-item-title">Trading Robot</div>
-                                <div class="download-item-price">$20.00/month</div>
-                            </div>
-                            <ul class="download-item-features">
-                                <li>SnIPx2 Flip EA for MetaTrader 5</li>
-                                <li>Grid trading system</li>
-                                <li>Dynamic lot sizing</li>
-                                <li>Smart hedge & lock systems</li>
-                            </ul>
-                            <div class="file-info">
-                                <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?>
-                            </div>
-                            <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
-                                <i class="fas fa-download"></i> Download EA & Settings
-                            </a>
-                        </div>
-
-                        <!-- BTrader Tools -->
-                        <div class="download-item">
-                            <div class="download-item-header">
-                                <div class="download-item-title">BTrader Tools</div>
-                                <div class="download-item-price">$49.99/month</div>
-                            </div>
-                            <ul class="download-item-features">
-                                <li>Access BTrader Tools</li>
-                                <li>BTrader Toolkits</li>
-                                <li>BTrader Concept & Sessions</li>
-                                <li>BTrader Algo</li>
-                            </ul>
-                            <div class="file-info">
-                                <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?>
-                            </div>
-                            <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
-                                <i class="fas fa-download"></i> Download Toolkit
-                            </a>
-                        </div>
+        <div class="container">
+            <!-- Dashboard Header -->
+            <header class="dashboard-header">
+                <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
+                <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
+                
+                <div class="user-header-info">
+                    <div class="user-welcome">
+                        <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
+                        <p>Signed in as: <span id="userEmailDisplay"></span></p>
+                    </div>
+                    <div class="user-actions">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
                     </div>
                 </div>
-
-                <!-- Card 2: License Key -->
+            </header>
+            
+            <!-- License Card -->
+            <div class="license-section">
                 <div class="license-card">
-                    <h2><i class="fas fa-key"></i> Your MT5 EA License Key</h2>
+                    <div class="license-header">
+                        <div class="license-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <h2 class="license-title">Your MT5 EA License Key</h2>
+                    </div>
                     
-                    <div class="license-info">
+                    <div class="license-key-box">
                         <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
                         
                         <div class="license-key-display" id="licenseKeyDisplay">
@@ -905,42 +888,132 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                         <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
                             <i class="fas fa-copy"></i> Copy License Key
                         </button>
+                        
+                        <div class="license-info">
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div class="info-value active" id="licenseStatus">Active</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Expires</div>
+                                <div class="info-value" id="licenseExpiry">2024-12-31</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Device</div>
+                                <div class="info-value" id="deviceStatus">Not Activated</div>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="license-status">
-                        <div class="status-item">
-                            <div class="status-label">Status</div>
-                            <div class="status-value active" id="licenseStatus">Active</div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-label">Expires</div>
-                            <div class="status-value" id="licenseExpiry">2024-12-31</div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-label">Device</div>
-                            <div class="status-value" id="deviceStatus">Not Activated</div>
-                        </div>
-                    </div>
-
-                    <div class="license-instructions">
-                        <h3><i class="fas fa-info-circle"></i> How to Use Your License Key:</h3>
-                        <ol>
-                            <li>Copy your license key above</li>
-                            <li>Open MetaTrader 5 and navigate to your EA settings</li>
-                            <li>Paste the license key in the designated field</li>
-                            <li>Save settings and restart your EA</li>
+                    
+                    <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543;">
+                        <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-info-circle"></i> How to Use Your License:
+                        </h3>
+                        <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
+                            <li style="margin-bottom: 8px;">Copy your license key above</li>
+                            <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
+                            <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
+                            <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
                             <li>Your EA will be activated for one device only</li>
                         </ol>
-                        <p style="color: #e74c3c; margin-top: 10px; font-size: 0.9rem;">
-                            <i class="fas fa-exclamation-triangle"></i> This license is valid for one device only. Contact support if you need to change devices.
-                        </p>
                     </div>
                 </div>
             </div>
-
-            <!-- Footer -->
-            <footer class="dashboard-footer">
-                <p>Need help with installation? Contact support@zeahong.com</p>
+            
+            <!-- Download Grid (Your Original Design) -->
+            <div class="download-grid">
+                <!-- Trading VPS Card -->
+                <div class="download-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <h2 class="card-title">Trading VPS</h2>
+                    </div>
+                    
+                    <div class="card-price">$13.00 <span>/month</span></div>
+                    
+                    <ul class="features-list">
+                        <li>12-24 GB RAM for strong performance</li>
+                        <li>24/7 uptime for bot trading</li>
+                        <li>Pre-installed MT5</li>
+                        <li>Remote Desktop access (RDP) from anywhere</li>
+                        <li>Easy payment with local Cambodian banks</li>
+                    </ul>
+                    
+                    <div class="file-info">
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
+                    </div>
+                    
+                    <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
+                        <i class="fas fa-download"></i> Download VPS Setup
+                    </a>
+                    <p class="instructions">Includes setup guide and configuration files</p>
+                </div>
+                
+                <!-- Trading Robot Card -->
+                <div class="download-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h2 class="card-title">Trading Robot</h2>
+                    </div>
+                    
+                    <div class="card-price">$20.00 <span>/month</span></div>
+                    
+                    <ul class="features-list">
+                        <li>SnIPx2 Flip EA for MetaTrader 5</li>
+                        <li>Grid trading system</li>
+                        <li>Dynamic lot sizing</li>
+                        <li>Adaptive trading</li>
+                        <li>Smart hedge system</li>
+                        <li>Smart lock system</li>
+                        <li>+9 more advanced features</li>
+                    </ul>
+                    
+                    <div class="file-info">
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
+                    </div>
+                    
+                    <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
+                        <i class="fas fa-download"></i> Download EA & Settings
+                    </a>
+                    <p class="instructions">Extract to your MT5 Experts folder</p>
+                </div>
+                
+                <!-- BTrader Tools Card -->
+                <div class="download-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h2 class="card-title">BTrader Tools</h2>
+                    </div>
+                    
+                    <div class="card-price">$49.99 <span>/month</span></div>
+                    
+                    <ul class="features-list">
+                        <li>Access BTrader Tools</li>
+                        <li>BTrader Toolkits</li>
+                        <li>BTrader Concept</li>
+                        <li>BTrader Sessions</li>
+                        <li>BTrader Algo</li>
+                    </ul>
+                    
+                    <div class="file-info">
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
+                    </div>
+                    
+                    <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
+                        <i class="fas fa-download"></i> Download Toolkit
+                    </a>
+                    <p class="instructions">Full trading toolkit with installation guide</p>
+                </div>
+            </div>
+            
+            <footer>
+                <p>Need help with installation? Contact support@example.com</p>
                 <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
                 
                 <div class="footer-links">
@@ -950,7 +1023,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     <a href="licenses.php">License Management</a>
                 </div>
                 
-                <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Zeahong Trading. All rights reserved.</p>
+                <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
             </footer>
         </div>
     </div>
@@ -987,8 +1060,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         // DOM Elements
         const loginPage = document.getElementById('loginPage');
         const dashboard = document.getElementById('dashboard');
-        const userInfoDisplay = document.getElementById('userInfoDisplay');
         const welcomeUserName = document.getElementById('welcomeUserName');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const userAvatar = document.getElementById('userAvatar');
         const licenseKeyDisplay = document.getElementById('licenseKeyDisplay');
         const licenseStatus = document.getElementById('licenseStatus');
         const licenseExpiry = document.getElementById('licenseExpiry');
@@ -1000,8 +1074,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         async function init() {
             try {
-                showMessage('info', 'Connecting to system...');
-                
                 // Setup auth state listener
                 setupAuthListener();
                 
@@ -1020,8 +1092,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         // Setup authentication state listener
         function setupAuthListener() {
             onAuthStateChanged(auth, async (user) => {
-                console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
-                
                 if (user) {
                     // User is signed in
                     showDashboard(user);
@@ -1045,17 +1115,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             const userDisplayName = user.displayName || user.email.split('@')[0];
             const userInitial = userDisplayName.charAt(0).toUpperCase();
             
-            // Update header user info
-            userInfoDisplay.innerHTML = `
-                <div class="user-avatar-small">${userInitial}</div>
-                <div class="user-details">
-                    <div class="user-name">${userDisplayName}</div>
-                    <div class="user-email">${user.email}</div>
-                </div>
-            `;
-            
-            // Update welcome message
             welcomeUserName.textContent = userDisplayName;
+            userEmailDisplay.textContent = user.email;
+            userAvatar.textContent = userInitial;
             
             // Update page title
             document.title = `Dashboard - ${userDisplayName}`;
@@ -1079,7 +1141,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     // No license found for this user
                     licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
                     licenseStatus.textContent = 'No License';
-                    licenseStatus.className = 'status-value expired';
+                    licenseStatus.className = 'info-value expired';
                     licenseExpiry.textContent = 'N/A';
                     deviceStatus.textContent = 'N/A';
                     copyButton.disabled = true;
@@ -1087,19 +1149,19 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
                     
                     // Show message to contact admin
-                    const licenseInfo = document.querySelector('.license-info');
                     const message = document.createElement('p');
                     message.style.color = '#e74c3c';
-                    message.style.marginTop = '10px';
+                    message.style.marginTop = '15px';
+                    message.style.textAlign = 'center';
                     message.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No license assigned. Contact admin to get a license key.';
-                    licenseInfo.appendChild(message);
+                    licenseKeyDisplay.parentNode.appendChild(message);
                 } else {
-                    // Parse license info (assuming format: KEY|STATUS|EXPIRY|DEVICE)
+                    // Parse license info
                     const parts = data.split('|');
                     if (parts.length >= 4) {
                         licenseKeyDisplay.textContent = parts[0];
                         licenseStatus.textContent = parts[1];
-                        licenseStatus.className = parts[1] === 'active' ? 'status-value active' : 'status-value expired';
+                        licenseStatus.className = parts[1] === 'active' ? 'info-value active' : 'info-value expired';
                         licenseExpiry.textContent = parts[2];
                         deviceStatus.textContent = parts[3] || 'Not Activated';
                         
@@ -1113,7 +1175,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
         }
 
-        // Show/Hide Forms
+        // Show/Hide Forms (same as before)
         window.showSignup = function() {
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
@@ -1172,7 +1234,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     successMsg.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
                     successMsg.style.display = 'block';
                     
-                    // Auto hide success message after 3 seconds
                     setTimeout(() => {
                         successMsg.style.display = 'none';
                     }, 3000);
@@ -1180,7 +1241,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
         }
 
-        // Login form submission
+        // Login form submission (same as before)
         document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1192,7 +1253,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 return;
             }
             
-            // Show loading
             const loginBtn = document.getElementById('loginBtn');
             const originalText = loginBtn.innerHTML;
             loginBtn.innerHTML = '<div class="loading"></div> Signing in...';
@@ -1200,10 +1260,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                console.log('Login successful:', userCredential.user);
                 
                 // Store user in session (for PHP)
-                const response = await fetch('save_session.php', {
+                await fetch('save_session.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1214,10 +1273,8 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     })
                 });
                 
-                // Clear form
                 document.getElementById('loginFormElement').reset();
-                
-                showMessage('success', 'Login successful! Redirecting...');
+                showMessage('success', 'Login successful!');
                 
             } catch (error) {
                 console.error('Login error:', error);
@@ -1234,12 +1291,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     case 'auth/invalid-email':
                         errorMsg += 'Invalid email address.';
                         break;
-                    case 'auth/user-disabled':
-                        errorMsg += 'This account has been disabled.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMsg += 'Too many attempts. Please try again later.';
-                        break;
                     default:
                         errorMsg += error.message;
                 }
@@ -1247,13 +1298,12 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 showMessage('error', errorMsg);
                 
             } finally {
-                // Restore button
                 loginBtn.innerHTML = originalText;
                 loginBtn.disabled = false;
             }
         });
 
-        // Signup form submission
+        // Signup form submission (same as before)
         document.getElementById('signupFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1262,7 +1312,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             const password = document.getElementById('signupPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
-            // Validation
             if (!name || !email || !password || !confirmPassword) {
                 showMessage('error', 'Please fill in all fields');
                 return;
@@ -1278,29 +1327,20 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 return;
             }
             
-            // Show loading
             const signupBtn = document.getElementById('signupBtn');
             const originalText = signupBtn.innerHTML;
             signupBtn.innerHTML = '<div class="loading"></div> Creating account...';
             signupBtn.disabled = true;
             
             try {
-                // Create user
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                console.log('User created:', userCredential.user);
                 
-                // Update profile with display name
                 await updateProfile(userCredential.user, {
                     displayName: name
                 });
                 
-                // Clear form
                 document.getElementById('signupFormElement').reset();
-                
                 showMessage('success', 'Account created successfully! Welcome!');
-                
-                // Automatically login after signup
-                showMessage('success', 'Auto-logging in...');
                 
             } catch (error) {
                 console.error('Signup error:', error);
@@ -1311,18 +1351,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     case 'auth/email-already-in-use':
                         errorMsg += 'This email is already registered.';
                         break;
-                    case 'auth/invalid-email':
-                        errorMsg += 'Invalid email address.';
-                        break;
-                    case 'auth/weak-password':
-                        errorMsg += 'Password is too weak.';
-                        break;
-                    case 'auth/operation-not-allowed':
-                        errorMsg += 'Email/password sign-up is not enabled. Please contact support.';
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMsg += 'Network error. Please check your connection.';
-                        break;
                     default:
                         errorMsg += error.message;
                 }
@@ -1330,13 +1358,12 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 showMessage('error', errorMsg);
                 
             } finally {
-                // Restore button
                 signupBtn.innerHTML = originalText;
                 signupBtn.disabled = false;
             }
         });
 
-        // Forgot password form submission
+        // Forgot password form submission (same as before)
         document.getElementById('forgotPasswordFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1347,7 +1374,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 return;
             }
             
-            // Show loading
             const resetBtn = document.getElementById('resetBtn');
             const originalText = resetBtn.innerHTML;
             resetBtn.innerHTML = '<div class="loading"></div> Sending...';
@@ -1360,27 +1386,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 
             } catch (error) {
                 console.error('Reset password error:', error);
-                
-                let errorMsg = 'Failed to send reset email. ';
-                
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                        errorMsg += 'No account found with this email.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMsg += 'Invalid email address.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMsg += 'Too many attempts. Please try again later.';
-                        break;
-                    default:
-                        errorMsg += error.message;
-                }
-                
-                showMessage('error', errorMsg);
+                showMessage('error', 'Failed to send reset email: ' + error.message);
                 
             } finally {
-                // Restore button
                 resetBtn.innerHTML = originalText;
                 resetBtn.disabled = false;
             }
@@ -1390,7 +1398,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         window.logout = async function() {
             try {
                 await signOut(auth);
-                // Clear PHP session
                 await fetch('logout.php');
                 showMessage('success', 'You have been signed out successfully.');
             } catch (error) {
@@ -1407,12 +1414,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
             
             navigator.clipboard.writeText(window.userLicenseKey).then(() => {
-                // Show success feedback
                 const originalText = copyButton.innerHTML;
                 copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 copyButton.style.background = 'linear-gradient(135deg, #27ae60 0%, #219653 100%)';
                 
-                // Revert after 2 seconds
                 setTimeout(() => {
                     copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
                     copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
