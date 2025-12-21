@@ -279,11 +279,10 @@ $file_sizes = [
                 <div class="card-price">$13.00 <span>/month</span></div>
                 
                 <ul class="features-list">
-                    <li>12-24 GB RAM for strong performance</li>
-                    <li>24/7 uptime for bot trading</li>
-                    <li>Pre-installed MT5</li>
-                    <li>Remote Desktop access (RDP) from anywhere</li>
-                    <li>Easy payment with local Cambodian banks</li>
+                    <li>Order Block</li>
+                    <li>Volume Block</li>
+                    <li>Pre-installed TradingView</li>
+                    
                 </ul>
                 
                 <div class="file-info">
@@ -308,7 +307,7 @@ $file_sizes = [
                 <div class="card-price">$20.00 <span>/month</span></div>
                 
                 <ul class="features-list">
-                    <li>SnIPx2 Flip EA for MetaTrader 5</li>
+                    <li>EA for MetaTrader 5</li>
                     <li>Grid trading system</li>
                     <li>Dynamic lot sizing</li>
                     <li>Adaptive trading</li>
@@ -339,11 +338,9 @@ $file_sizes = [
                 <div class="card-price">$49.99 <span>/month</span></div>
                 
                 <ul class="features-list">
-                    <li>Access BTrader Tools</li>
-                    <li>BTrader Toolkits</li>
-                    <li>BTrader Concept</li>
-                    <li>BTrader Sessions</li>
-                    <li>BTrader Algo</li>
+                    <li>3k-5K Balance</li>
+                    <li>30k-50K Balance</li>
+                    <li>300k-500K Balance</li>
                 </ul>
                 
                 <div class="file-info">
