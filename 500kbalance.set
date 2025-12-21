@@ -1,0 +1,80 @@
+﻿; === LICENSE SETTINGS ===
+LicenseKey=
+; 
+; 1️⃣ LOT & RISK SETTINGS
+Starting_Lots=1.0
+Layer_Multiplier=3.0
+Use_Dynamic_Lot_Sizing=false
+Risk_Per_Trade=0.01
+Maximum_Lot_Size_Cap=10.0
+; 2️⃣ GRID SETTINGS
+Use_Open_Candle=true
+Pip_Step=200.0
+Max_Trades=99999
+Take_Profit=200.0
+Use_ATR_Based_Pip_Step=true
+Adaptive_Pip_Step_ATR_Multiplier=3.0
+; 🔢 VOLATILITY FILTER SETTINGS
+Use_Volatility_Filter=true
+Volatility_Period=1
+Volatility_TF=16385
+Volatility_Low_Level=700.0
+Volatility_Medium_Level=2000.0
+Volatility_High_Level=3000.0
+Allow_Trade_On_Low_Vol=true
+Allow_Trade_On_Medium_Vol=false
+Allow_Trade_On_High_Vol=false
+; 3️⃣ TRADING DIRECTION
+Buy=true
+Buy_Magic_Number=123457
+Sell=false
+Sell_Magic_Number=111114
+; 4️⃣ SMART HEDGE MODE
+Enable_Smart_Hedge_Mode=false
+Trigger_Hedge_After_X_Layers=30
+Hedge_Lot_Ratio=1.0
+Hedge_Pip_Step=150.0
+Hedge_TP=50.0
+; 5️⃣ TRAILING STOP
+Auto_Close_Hedge_When_Profitable=false
+Enable_Hedge_Trailing_Stop=false
+Start_Trailing_After=20.0
+Trailing_Step=10.0
+; 6️⃣ LOSS REDUCTION MODE
+Enable_Daily_Loss_Limit=false
+Reduce_Lots_After_Losses=false
+; 7️⃣ SESSION FILTER
+Enable_Session_Filter=false
+Trade_Asian=true
+Trade_London=true
+Trade_NY=true
+; 8️⃣ SMART LOCK MODE
+Enable_Smart_Lock=false
+; 9️⃣ BREAK-EVEN MANAGEMENT
+Enable_Break_Even=false
+Trigger_After=20.0
+Lock_In=2.0
+; 🔟 PARTIAL CLOSE SYSTEM
+Enable_Partial_Close=false
+Partial_Close_Pips=15.0
+Partial_Close_Percent=50.0
+; 1️⃣1️⃣ TIME FILTER
+Start_Time=00:00
+End_Time=23:59
+Use_Disable_Date=false
+; 1️⃣2️⃣ NEWS FILTER
+Use_News_Filter=false
+Minutes_Before_News=30
+Minutes_After_News=30
+Close_All_Trades_Before_News=false
+; 1️⃣3️⃣ DAILY PROFIT LIMIT
+Use_Daily_Profit_Limit=false
+Daily_Gross_Profit_Limit=100.0
+Close_All_When_Limit_Reached=true
+; 1️⃣4️⃣ DASHBOARD
+Show_Dashboard=true
+Show_ATR_Value=true
+Show_Volatility_Status=true
+ATR_Period=14
+ATR_Multiplier=1.5
+ATR_Timeframe=0
