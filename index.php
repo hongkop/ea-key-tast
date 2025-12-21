@@ -2,7 +2,7 @@
 // Download URLs for each product
 $download_links = [
     'trading_vps' => 'https://example.com/downloads/trading-vps-setup.zip',
-    'trading_robot' => '"https://zeahong.up.railway.app/4T8 EA Scalping.ex5',
+    'trading_robot' => '"https://zeahong.up.railway.app/500k balance.set',
     'btrader_tools' => 'https://example.com/downloads/btrader-tools-package.zip'
 ];
 
