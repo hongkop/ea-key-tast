@@ -1,4 +1,7 @@
 <?php
+// Start session for user management
+session_start();
+
 // Download URLs for each product
 $download_links = [
     'trading_vps' => 'https://example.com/downloads/trading-vps-setup.zip',
@@ -12,6 +15,9 @@ $file_sizes = [
     'trading_robot' => '28 MB',
     'btrader_tools' => '62 MB'
 ];
+
+// Check if user is logged in via Firebase
+$isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +25,7 @@ $file_sizes = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Tools Download Center</title>
+    <title>Zeahong Trading Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -33,150 +39,25 @@ $file_sizes = [
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #e0e0e0;
             min-height: 100vh;
-            padding: 20px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Header Styles */
-        .main-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .header-left h1 {
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-            color: #ffffff;
-        }
-
-        .header-left p {
-            color: #ecf0f1;
-            opacity: 0.9;
-        }
-
-        .header-right {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 12px 20px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar-small {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            border-radius: 50%;
+        /* Login Page Styles (Hidden when logged in) */
+        .login-page {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .user-details {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .user-email {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .btn-auth {
+            min-height: 100vh;
+            padding: 20px;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-auth:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.4);
-        }
-
-        .btn-logout {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .btn-logout:hover {
-            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
-        }
-
-        .btn-admin {
-            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
-        }
-
-        .btn-admin:hover {
-            box-shadow: 0 10px 20px rgba(39, 174, 96, 0.4);
-        }
-
-        /* Login Modal */
-        .login-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .login-container {
-            background: white;
-            border-radius: 20px;
-            width: 90%;
+            width: 100%;
             max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
 
         .login-header {
@@ -191,13 +72,29 @@ $file_sizes = [
             margin-bottom: 10px;
         }
 
-        .login-header h2 {
-            font-size: 1.5rem;
+        .login-header h1 {
+            font-size: 1.8rem;
             font-weight: 600;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            margin-top: 5px;
         }
 
         .login-content {
             padding: 40px 30px;
+        }
+
+        .form-container {
+            display: block;
+        }
+
+        .form-title {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         .form-group {
@@ -207,7 +104,7 @@ $file_sizes = [
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: #555;
             font-weight: 500;
             font-size: 14px;
         }
@@ -231,7 +128,6 @@ $file_sizes = [
             border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s;
-            color: #333;
         }
 
         .input-group input:focus {
@@ -240,7 +136,7 @@ $file_sizes = [
             box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
         }
 
-        .btn-login {
+        .btn {
             width: 100%;
             padding: 16px;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
@@ -250,11 +146,11 @@ $file_sizes = [
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
             margin-top: 10px;
         }
 
-        .btn-login:hover {
+        .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
         }
@@ -318,148 +214,25 @@ $file_sizes = [
             border-left: 4px solid #27ae60;
         }
 
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
+        .message.info {
+            background: #e3f2fd;
+            color: #2196f3;
+            border-left: 4px solid #2196f3;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6a11cb;
             border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 1001;
+            animation: spin 1s linear infinite;
         }
 
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Download Grid */
-        .download-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            padding: 20px;
-        }
-
-        .download-card {
-            background: rgba(25, 40, 50, 0.85);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid rgba(64, 128, 192, 0.3);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .download-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            border-color: rgba(64, 128, 192, 0.6);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .card-icon {
-            font-size: 2.5rem;
-            margin-right: 15px;
-            color: #4dabf7;
-        }
-
-        .card-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .card-price {
-            font-size: 1.5rem;
-            color: #4dabf7;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .card-price span {
-            font-size: 1rem;
-            color: #a0c8e0;
-        }
-
-        .features-list {
-            list-style: none;
-            margin-bottom: 25px;
-            flex-grow: 1;
-        }
-
-        .features-list li {
-            padding: 8px 0;
-            position: relative;
-            padding-left: 25px;
-        }
-
-        .features-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        .file-info {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: #a0c8e0;
-        }
-
-        .file-info i {
-            margin-right: 8px;
-            color: #4dabf7;
-        }
-
-        .download-btn {
-            display: block;
-            text-align: center;
-            background: linear-gradient(to right, #2193b0, #6dd5ed);
-            color: white;
-            text-decoration: none;
-            padding: 16px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 5px 15px rgba(33, 147, 176, 0.4);
-        }
-
-        .download-btn:hover {
-            background: linear-gradient(to right, #1b7a93, #5bc0de);
-            box-shadow: 0 7px 20px rgba(33, 147, 176, 0.6);
-            transform: translateY(-2px);
-        }
-
-        .download-btn i {
-            margin-right: 10px;
-        }
-
-        .instructions {
-            margin-top: 15px;
-            font-size: 0.85rem;
-            color: #a0c8e0;
-            text-align: center;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .forgot-password {
@@ -478,35 +251,384 @@ $file_sizes = [
             text-decoration: underline;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #6a11cb;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .admin-note {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .admin-note a {
+            color: #6a11cb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .admin-note a:hover {
+            text-decoration: underline;
+        }
+
+        /* Dashboard Styles (Hidden when not logged in) */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-header-left h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .dashboard-header-left p {
+            color: #ecf0f1;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar-small {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-email {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-message {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            border-left: 5px solid #4dabf7;
+        }
+
+        .welcome-message h2 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .welcome-message p {
+            color: #a0c8e0;
+            font-size: 1.1rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        @media (max-width: 1100px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card 1: Downloads */
+        .downloads-card {
+            background: rgba(25, 40, 50, 0.85);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(64, 128, 192, 0.3);
+        }
+
+        .downloads-card h2 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .downloads-card h2 i {
+            color: #4dabf7;
+        }
+
+        .download-items {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .download-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4dabf7;
+        }
+
+        .download-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .download-item-title {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .download-item-price {
+            background: #4dabf7;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .download-item-features {
+            list-style: none;
+            margin-bottom: 15px;
+        }
+
+        .download-item-features li {
+            padding: 5px 0;
+            position: relative;
+            padding-left: 20px;
+            color: #a0c8e0;
+        }
+
+        .download-item-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .download-btn {
+            display: block;
+            text-align: center;
+            background: linear-gradient(to right, #2193b0, #6dd5ed);
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(to right, #1b7a93, #5bc0de);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 147, 176, 0.4);
+        }
+
+        /* Card 2: License Key */
+        .license-card {
+            background: rgba(25, 40, 50, 0.85);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(75, 181, 67, 0.3);
+        }
+
+        .license-card h2 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .license-card h2 i {
+            color: #4bb543;
+        }
+
+        .license-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .license-key-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            border: 2px dashed #4bb543;
+            color: #4bb543;
+            font-weight: bold;
+        }
+
+        .license-status {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .status-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            color: #a0c8e0;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .status-value.active {
+            color: #4bb543;
+        }
+
+        .status-value.expired {
+            color: #e74c3c;
+        }
+
+        .license-instructions {
+            background: rgba(75, 181, 67, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            border-left: 4px solid #4bb543;
+        }
+
+        .license-instructions h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .license-instructions ol {
+            color: #a0c8e0;
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        .license-instructions li {
+            margin-bottom: 8px;
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4bb543 0%, #3a9d32 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(75, 181, 67, 0.4);
         }
 
         /* Footer */
-        footer {
+        .dashboard-footer {
             text-align: center;
-            padding: 40px 20px;
-            margin-top: 40px;
+            padding: 30px 20px;
             color: #a0c8e0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
         }
 
         .footer-links {
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin-top: 20px;
+            margin: 20px 0;
             flex-wrap: wrap;
         }
 
@@ -519,102 +641,57 @@ $file_sizes = [
             text-decoration: underline;
         }
 
-        /* Login Required Overlay */
-        .login-required {
+        /* Admin Panel Link */
+        .admin-panel-link {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 32, 39, 0.95);
-            display: none;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            transition: all 0.3s;
+            z-index: 100;
+            display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 999;
+            gap: 8px;
         }
 
-        .login-required-content {
-            background: rgba(25, 40, 50, 0.95);
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
-            max-width: 500px;
-            border: 2px solid #4dabf7;
-        }
-
-        .login-required-content h2 {
-            color: #fff;
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        .login-required-content p {
-            color: #a0c8e0;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .download-grid {
-                grid-template-columns: 1fr;
-                padding: 10px;
-            }
-            
-            .main-header {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-            
-            .header-right {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .btn-auth {
-                width: 100%;
-                justify-content: center;
-            }
+        .admin-panel-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.6);
         }
     </style>
 </head>
 <body>
-    <!-- Login Required Overlay -->
-    <div class="login-required" id="loginRequired">
-        <div class="login-required-content">
-            <h2>🔒 Login Required</h2>
-            <p>Please login to access the download center. You need to be authenticated to download our products.</p>
-            <button class="btn-auth" onclick="showLoginModal()">
-                <i class="fas fa-sign-in-alt"></i> Login Now
-            </button>
-            <p style="margin-top: 20px; font-size: 0.9rem; color: #a0c8e0;">
-                Don't have an account? <a href="#" onclick="showSignup()" style="color: #4dabf7;">Sign up for free</a>
-            </p>
-        </div>
-    </div>
-
-    <!-- Login Modal -->
-    <div class="login-modal" id="loginModal">
-        <button class="close-btn" onclick="hideLoginModal()">×</button>
+    <!-- Login Page (Initially shown) -->
+    <div class="login-page" id="loginPage">
         <div class="login-container">
             <!-- Header -->
             <div class="login-header">
                 <div class="login-logo">
                     <i class="fas fa-user-shield"></i>
                 </div>
-                <h2 id="modalTitle">Welcome Back</h2>
-                <p>Sign in to your account</p>
+                <h1>Zeahong Trading</h1>
+                <p>Secure Authentication System</p>
             </div>
 
             <!-- Content Area -->
             <div class="login-content">
                 <!-- Messages -->
+                <div class="message info" id="infoMessage">
+                    <i class="fas fa-info-circle"></i> Initializing system...
+                </div>
+                
                 <div class="message error" id="errorMessage"></div>
                 <div class="message success" id="successMessage"></div>
 
                 <!-- Login Form (Default) -->
                 <div class="form-container" id="loginForm">
+                    <h2 class="form-title">Welcome Back</h2>
                     <form id="loginFormElement">
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
@@ -633,12 +710,16 @@ $file_sizes = [
                                 <a href="#" onclick="showForgotPassword()">Forgot password?</a>
                             </div>
                         </div>
-                        <button type="submit" class="btn-login" id="loginBtn">
+                        <button type="submit" class="btn" id="loginBtn">
                             <i class="fas fa-sign-in-alt"></i> Sign In
                         </button>
                     </form>
                     <div class="toggle-link">
                         Don't have an account? <a onclick="showSignup()">Sign up now</a>
+                    </div>
+                    
+                    <div class="admin-note">
+                        Admin? <a href="licenses.php">Login to Admin Panel</a>
                     </div>
                 </div>
 
@@ -674,7 +755,7 @@ $file_sizes = [
                                 <input type="password" id="confirmPassword" placeholder="Confirm your password" required minlength="6">
                             </div>
                         </div>
-                        <button type="submit" class="btn-login" id="signupBtn">
+                        <button type="submit" class="btn" id="signupBtn">
                             <i class="fas fa-user-plus"></i> Create Account
                         </button>
                     </form>
@@ -697,10 +778,10 @@ $file_sizes = [
                                 We'll send you a link to reset your password.
                             </p>
                         </div>
-                        <button type="submit" class="btn-login" id="resetBtn">
+                        <button type="submit" class="btn" id="resetBtn">
                             <i class="fas fa-paper-plane"></i> Send Reset Link
                         </button>
-                        <button type="button" class="btn-login btn-secondary" onclick="showLogin()">
+                        <button type="button" class="btn btn-secondary" onclick="showLogin()">
                             <i class="fas fa-arrow-left"></i> Back to Login
                         </button>
                     </form>
@@ -709,131 +790,169 @@ $file_sizes = [
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container" id="mainContent">
+    <!-- Dashboard (Hidden until login) -->
+    <div class="dashboard" id="dashboard">
+        <!-- Admin Panel Link -->
+        <a href="licenses.php" class="admin-panel-link">
+            <i class="fas fa-user-shield"></i> Admin Panel
+        </a>
+
         <!-- Header -->
-        <header class="main-header">
-            <div class="header-left">
-                <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
-                <p>Download your purchased trading tools, expert advisors, and configurations</p>
+        <header class="dashboard-header">
+            <div class="dashboard-header-left">
+                <h1><i class="fas fa-tachometer-alt"></i> Zeahong Trading Dashboard</h1>
+                <p>Welcome to your trading tools and license management center</p>
             </div>
             
-            <div class="header-right" id="authButtons">
-                <!-- User info will be displayed here when logged in -->
-                <button class="btn-auth" onclick="showLoginModal()" id="loginButton">
-                    <i class="fas fa-sign-in-alt"></i> Login
+            <div class="header-right">
+                <div class="user-info" id="userInfoDisplay">
+                    <!-- User info will be populated by JavaScript -->
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
-                <a href="licenses.php" class="btn-auth btn-admin">
-                    <i class="fas fa-user-shield"></i> Admin Panel
-                </a>
             </div>
         </header>
-        
-        <!-- Download Grid -->
-        <div class="download-grid">
-            <!-- Trading VPS Card -->
-            <div class="download-card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-server"></i>
-                    </div>
-                    <h2 class="card-title">Trading VPS</h2>
-                </div>
-                
-                <div class="card-price">$13.00 <span>/month</span></div>
-                
-                <ul class="features-list">
-                    <li>12-24 GB RAM for strong performance</li>
-                    <li>24/7 uptime for bot trading</li>
-                    <li>Pre-installed MT5</li>
-                    <li>Remote Desktop access (RDP) from anywhere</li>
-                    <li>Easy payment with local Cambodian banks</li>
-                </ul>
-                
-                <div class="file-info">
-                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
-                </div>
-                
-                <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return checkAuth(event, 'Trading VPS')">
-                    <i class="fas fa-download"></i> Download VPS Setup
-                </a>
-                <p class="instructions">Includes setup guide and configuration files</p>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h2>Welcome, <span id="welcomeUserName">User</span>!</h2>
+                <p>Access your trading tools and manage your EA license key below</p>
             </div>
-            
-            <!-- Trading Robot Card -->
-            <div class="download-card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-robot"></i>
+
+            <!-- Cards Grid -->
+            <div class="cards-grid">
+                <!-- Card 1: Downloads -->
+                <div class="downloads-card">
+                    <h2><i class="fas fa-download"></i> Trading Tools Download</h2>
+                    
+                    <div class="download-items">
+                        <!-- Trading VPS -->
+                        <div class="download-item">
+                            <div class="download-item-header">
+                                <div class="download-item-title">Trading VPS</div>
+                                <div class="download-item-price">$13.00/month</div>
+                            </div>
+                            <ul class="download-item-features">
+                                <li>12-24 GB RAM for strong performance</li>
+                                <li>24/7 uptime for bot trading</li>
+                                <li>Pre-installed MT5</li>
+                                <li>Remote Desktop access (RDP)</li>
+                            </ul>
+                            <div class="file-info">
+                                <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?>
+                            </div>
+                            <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
+                                <i class="fas fa-download"></i> Download VPS Setup
+                            </a>
+                        </div>
+
+                        <!-- Trading Robot -->
+                        <div class="download-item">
+                            <div class="download-item-header">
+                                <div class="download-item-title">Trading Robot</div>
+                                <div class="download-item-price">$20.00/month</div>
+                            </div>
+                            <ul class="download-item-features">
+                                <li>SnIPx2 Flip EA for MetaTrader 5</li>
+                                <li>Grid trading system</li>
+                                <li>Dynamic lot sizing</li>
+                                <li>Smart hedge & lock systems</li>
+                            </ul>
+                            <div class="file-info">
+                                <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?>
+                            </div>
+                            <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
+                                <i class="fas fa-download"></i> Download EA & Settings
+                            </a>
+                        </div>
+
+                        <!-- BTrader Tools -->
+                        <div class="download-item">
+                            <div class="download-item-header">
+                                <div class="download-item-title">BTrader Tools</div>
+                                <div class="download-item-price">$49.99/month</div>
+                            </div>
+                            <ul class="download-item-features">
+                                <li>Access BTrader Tools</li>
+                                <li>BTrader Toolkits</li>
+                                <li>BTrader Concept & Sessions</li>
+                                <li>BTrader Algo</li>
+                            </ul>
+                            <div class="file-info">
+                                <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?>
+                            </div>
+                            <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
+                                <i class="fas fa-download"></i> Download Toolkit
+                            </a>
+                        </div>
                     </div>
-                    <h2 class="card-title">Trading Robot</h2>
                 </div>
-                
-                <div class="card-price">$20.00 <span>/month</span></div>
-                
-                <ul class="features-list">
-                    <li>SnIPx2 Flip EA for MetaTrader 5</li>
-                    <li>Grid trading system</li>
-                    <li>Dynamic lot sizing</li>
-                    <li>Adaptive trading</li>
-                    <li>Smart hedge system</li>
-                    <li>Smart lock system</li>
-                    <li>+9 more advanced features</li>
-                </ul>
-                
-                <div class="file-info">
-                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
-                </div>
-                
-                <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return checkAuth(event, 'Trading Robot')">
-                    <i class="fas fa-download"></i> Download EA & Settings
-                </a>
-                <p class="instructions">Extract to your MT5 Experts folder</p>
-            </div>
-            
-            <!-- BTrader Tools Card -->
-            <div class="download-card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-tools"></i>
+
+                <!-- Card 2: License Key -->
+                <div class="license-card">
+                    <h2><i class="fas fa-key"></i> Your MT5 EA License Key</h2>
+                    
+                    <div class="license-info">
+                        <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
+                        
+                        <div class="license-key-display" id="licenseKeyDisplay">
+                            <i class="fas fa-spinner fa-spin"></i> Loading license key...
+                        </div>
+                        
+                        <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
+                            <i class="fas fa-copy"></i> Copy License Key
+                        </button>
                     </div>
-                    <h2 class="card-title">BTrader Tools</h2>
+
+                    <div class="license-status">
+                        <div class="status-item">
+                            <div class="status-label">Status</div>
+                            <div class="status-value active" id="licenseStatus">Active</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Expires</div>
+                            <div class="status-value" id="licenseExpiry">2024-12-31</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Device</div>
+                            <div class="status-value" id="deviceStatus">Not Activated</div>
+                        </div>
+                    </div>
+
+                    <div class="license-instructions">
+                        <h3><i class="fas fa-info-circle"></i> How to Use Your License Key:</h3>
+                        <ol>
+                            <li>Copy your license key above</li>
+                            <li>Open MetaTrader 5 and navigate to your EA settings</li>
+                            <li>Paste the license key in the designated field</li>
+                            <li>Save settings and restart your EA</li>
+                            <li>Your EA will be activated for one device only</li>
+                        </ol>
+                        <p style="color: #e74c3c; margin-top: 10px; font-size: 0.9rem;">
+                            <i class="fas fa-exclamation-triangle"></i> This license is valid for one device only. Contact support if you need to change devices.
+                        </p>
+                    </div>
                 </div>
-                
-                <div class="card-price">$49.99 <span>/month</span></div>
-                
-                <ul class="features-list">
-                    <li>Access BTrader Tools</li>
-                    <li>BTrader Toolkits</li>
-                    <li>BTrader Concept</li>
-                    <li>BTrader Sessions</li>
-                    <li>BTrader Algo</li>
-                </ul>
-                
-                <div class="file-info">
-                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
-                </div>
-                
-                <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return checkAuth(event, 'BTrader Tools')">
-                    <i class="fas fa-download"></i> Download Toolkit
-                </a>
-                <p class="instructions">Full trading toolkit with installation guide</p>
             </div>
+
+            <!-- Footer -->
+            <footer class="dashboard-footer">
+                <p>Need help with installation? Contact support@zeahong.com</p>
+                <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
+                
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Support Center</a>
+                    <a href="licenses.php">License Management</a>
+                </div>
+                
+                <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Zeahong Trading. All rights reserved.</p>
+            </footer>
         </div>
-        
-        <footer>
-            <p>Need help with installation? Contact support@example.com</p>
-            <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
-            
-            <div class="footer-links">
-                <a href="#">Terms of Service</a>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Support Center</a>
-                <a href="licenses.php">License Management</a>
-            </div>
-            
-            <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
-        </footer>
     </div>
 
     <!-- Firebase SDK -->
@@ -866,23 +985,31 @@ $file_sizes = [
         const auth = getAuth(app);
 
         // DOM Elements
-        const loginModal = document.getElementById('loginModal');
-        const loginRequired = document.getElementById('loginRequired');
-        const authButtons = document.getElementById('authButtons');
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
-        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-        const modalTitle = document.getElementById('modalTitle');
+        const loginPage = document.getElementById('loginPage');
+        const dashboard = document.getElementById('dashboard');
+        const userInfoDisplay = document.getElementById('userInfoDisplay');
+        const welcomeUserName = document.getElementById('welcomeUserName');
+        const licenseKeyDisplay = document.getElementById('licenseKeyDisplay');
+        const licenseStatus = document.getElementById('licenseStatus');
+        const licenseExpiry = document.getElementById('licenseExpiry');
+        const deviceStatus = document.getElementById('deviceStatus');
+        const copyButton = document.getElementById('copyButton');
 
         // Initialize
         init();
 
         async function init() {
             try {
+                showMessage('info', 'Connecting to system...');
+                
                 // Setup auth state listener
                 setupAuthListener();
+                
+                // Hide info message after 2 seconds
+                setTimeout(() => {
+                    const infoMsg = document.getElementById('infoMessage');
+                    if (infoMsg) infoMsg.style.display = 'none';
+                }, 2000);
                 
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -892,16 +1019,16 @@ $file_sizes = [
 
         // Setup authentication state listener
         function setupAuthListener() {
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
                 
                 if (user) {
                     // User is signed in
-                    updateUIForLoggedInUser(user);
-                    hideLoginRequired();
+                    showDashboard(user);
+                    await updateUserLicenseInfo(user.email);
                 } else {
                     // User is signed out
-                    updateUIForLoggedOutUser();
+                    showLoginPage();
                 }
             }, (error) => {
                 console.error('Auth state error:', error);
@@ -909,92 +1036,124 @@ $file_sizes = [
             });
         }
 
-        // Update UI for logged in user
-        function updateUIForLoggedInUser(user) {
-            // Hide login button, show user info
-            const loginButton = document.getElementById('loginButton');
-            if (loginButton) loginButton.style.display = 'none';
+        // Show dashboard with user info
+        function showDashboard(user) {
+            loginPage.style.display = 'none';
+            dashboard.style.display = 'block';
             
-            // Create user info element
+            // Update user info
             const userDisplayName = user.displayName || user.email.split('@')[0];
             const userInitial = userDisplayName.charAt(0).toUpperCase();
             
-            const userInfoHTML = `
-                <div class="user-info">
-                    <div class="user-avatar-small">${userInitial}</div>
-                    <div class="user-details">
-                        <div class="user-name">${userDisplayName}</div>
-                        <div class="user-email">${user.email}</div>
-                    </div>
+            // Update header user info
+            userInfoDisplay.innerHTML = `
+                <div class="user-avatar-small">${userInitial}</div>
+                <div class="user-details">
+                    <div class="user-name">${userDisplayName}</div>
+                    <div class="user-email">${user.email}</div>
                 </div>
-                <button class="btn-auth btn-logout" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
             `;
             
-            authButtons.innerHTML = userInfoHTML + authButtons.innerHTML;
+            // Update welcome message
+            welcomeUserName.textContent = userDisplayName;
+            
+            // Update page title
+            document.title = `Dashboard - ${userDisplayName}`;
         }
 
-        // Update UI for logged out user
-        function updateUIForLoggedOutUser() {
-            authButtons.innerHTML = `
-                <button class="btn-auth" onclick="showLoginModal()" id="loginButton">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <a href="licenses.php" class="btn-auth btn-admin">
-                    <i class="fas fa-user-shield"></i> Admin Panel
-                </a>
-            `;
+        // Show login page
+        function showLoginPage() {
+            dashboard.style.display = 'none';
+            loginPage.style.display = 'flex';
+            document.title = 'Zeahong Trading - Login';
+        }
+
+        // Update user license information
+        async function updateUserLicenseInfo(userEmail) {
+            try {
+                // Fetch user's license from your API
+                const response = await fetch(`login.php?action=get_license&email=${encodeURIComponent(userEmail)}`);
+                const data = await response.text();
+                
+                if (data.includes('INVALID') || data.includes('NOT_FOUND')) {
+                    // No license found for this user
+                    licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+                    licenseStatus.textContent = 'No License';
+                    licenseStatus.className = 'status-value expired';
+                    licenseExpiry.textContent = 'N/A';
+                    deviceStatus.textContent = 'N/A';
+                    copyButton.disabled = true;
+                    copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                    
+                    // Show message to contact admin
+                    const licenseInfo = document.querySelector('.license-info');
+                    const message = document.createElement('p');
+                    message.style.color = '#e74c3c';
+                    message.style.marginTop = '10px';
+                    message.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No license assigned. Contact admin to get a license key.';
+                    licenseInfo.appendChild(message);
+                } else {
+                    // Parse license info (assuming format: KEY|STATUS|EXPIRY|DEVICE)
+                    const parts = data.split('|');
+                    if (parts.length >= 4) {
+                        licenseKeyDisplay.textContent = parts[0];
+                        licenseStatus.textContent = parts[1];
+                        licenseStatus.className = parts[1] === 'active' ? 'status-value active' : 'status-value expired';
+                        licenseExpiry.textContent = parts[2];
+                        deviceStatus.textContent = parts[3] || 'Not Activated';
+                        
+                        // Store license key in global variable for copying
+                        window.userLicenseKey = parts[0];
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching license info:', error);
+                licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error loading license</span>';
+            }
         }
 
         // Show/Hide Forms
         window.showSignup = function() {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            
             loginForm.style.display = 'none';
             signupForm.style.display = 'block';
             forgotPasswordForm.style.display = 'none';
-            modalTitle.textContent = 'Create Account';
             clearMessages();
         };
 
         window.showLogin = function() {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            
             signupForm.style.display = 'none';
             loginForm.style.display = 'block';
             forgotPasswordForm.style.display = 'none';
-            modalTitle.textContent = 'Welcome Back';
             clearMessages();
         };
 
         window.showForgotPassword = function() {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            
             loginForm.style.display = 'none';
             signupForm.style.display = 'none';
             forgotPasswordForm.style.display = 'block';
-            modalTitle.textContent = 'Reset Password';
             clearMessages();
-        };
-
-        // Modal functions
-        window.showLoginModal = function() {
-            loginModal.style.display = 'flex';
-            showLogin(); // Show login form by default
-        };
-
-        window.hideLoginModal = function() {
-            loginModal.style.display = 'none';
-            clearMessages();
-        };
-
-        window.showLoginRequired = function() {
-            loginRequired.style.display = 'flex';
-        };
-
-        window.hideLoginRequired = function() {
-            loginRequired.style.display = 'none';
         };
 
         // Clear messages
         function clearMessages() {
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            
+            if (errorMsg) errorMsg.style.display = 'none';
+            if (successMsg) successMsg.style.display = 'none';
         }
 
         // Show message
@@ -1002,39 +1161,24 @@ $file_sizes = [
             clearMessages();
             
             if (type === 'error') {
-                errorMessage.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${text}`;
-                errorMessage.style.display = 'block';
+                const errorMsg = document.getElementById('errorMessage');
+                if (errorMsg) {
+                    errorMsg.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${text}`;
+                    errorMsg.style.display = 'block';
+                }
             } else if (type === 'success') {
-                successMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
-                successMessage.style.display = 'block';
-                
-                // Auto hide success message after 3 seconds
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 3000);
+                const successMsg = document.getElementById('successMessage');
+                if (successMsg) {
+                    successMsg.innerHTML = `<i class="fas fa-check-circle"></i> ${text}`;
+                    successMsg.style.display = 'block';
+                    
+                    // Auto hide success message after 3 seconds
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 3000);
+                }
             }
         }
-
-        // Check authentication before download
-        window.checkAuth = function(event, productName) {
-            const user = auth.currentUser;
-            
-            if (!user) {
-                event.preventDefault();
-                showLoginRequired();
-                return false;
-            }
-            
-            // User is authenticated, proceed with download confirmation
-            if (confirm(`You are about to download: ${productName}\n\nMake sure you have an active subscription to use this product.`)) {
-                // Track download (you could add analytics here)
-                console.log(`Download started by ${user.email}: ${productName}`);
-                return true;
-            } else {
-                event.preventDefault();
-                return false;
-            }
-        };
 
         // Login form submission
         document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
@@ -1058,15 +1202,22 @@ $file_sizes = [
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 console.log('Login successful:', userCredential.user);
                 
+                // Store user in session (for PHP)
+                const response = await fetch('save_session.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: userCredential.user.email,
+                        name: userCredential.user.displayName || userCredential.user.email.split('@')[0]
+                    })
+                });
+                
                 // Clear form
                 document.getElementById('loginFormElement').reset();
                 
-                showMessage('success', 'Login successful!');
-                
-                // Close modal after successful login
-                setTimeout(() => {
-                    hideLoginModal();
-                }, 1000);
+                showMessage('success', 'Login successful! Redirecting...');
                 
             } catch (error) {
                 console.error('Login error:', error);
@@ -1148,10 +1299,8 @@ $file_sizes = [
                 
                 showMessage('success', 'Account created successfully! Welcome!');
                 
-                // Close modal after successful signup
-                setTimeout(() => {
-                    hideLoginModal();
-                }, 1000);
+                // Automatically login after signup
+                showMessage('success', 'Auto-logging in...');
                 
             } catch (error) {
                 console.error('Signup error:', error);
@@ -1241,6 +1390,8 @@ $file_sizes = [
         window.logout = async function() {
             try {
                 await signOut(auth);
+                // Clear PHP session
+                await fetch('logout.php');
                 showMessage('success', 'You have been signed out successfully.');
             } catch (error) {
                 console.error('Logout error:', error);
@@ -1248,18 +1399,36 @@ $file_sizes = [
             }
         };
 
-        // Close modal when clicking outside
-        loginModal.addEventListener('click', (e) => {
-            if (e.target === loginModal) {
-                hideLoginModal();
+        // Copy license key function
+        window.copyLicenseKey = function() {
+            if (!window.userLicenseKey) {
+                showMessage('error', 'No license key available to copy');
+                return;
             }
-        });
+            
+            navigator.clipboard.writeText(window.userLicenseKey).then(() => {
+                // Show success feedback
+                const originalText = copyButton.innerHTML;
+                copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                copyButton.style.background = 'linear-gradient(135deg, #27ae60 0%, #219653 100%)';
+                
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                    copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                }, 2000);
+                
+                showMessage('success', 'License key copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showMessage('error', 'Failed to copy license key');
+            });
+        };
 
-        loginRequired.addEventListener('click', (e) => {
-            if (e.target === loginRequired) {
-                hideLoginRequired();
-            }
-        });
+        // Download confirmation
+        window.confirmDownload = function(productName) {
+            return confirm(`You are about to download: ${productName}\n\nMake sure you have an active subscription to use this product.`);
+        };
     </script>
 </body>
 </html>
