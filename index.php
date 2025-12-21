@@ -1,8 +1,8 @@
 <?php
 // Download URLs for each product
 $download_links = [
-    'trading_vps' => 'https://zeahong.up.railway.app/500kbalance.set',
-    'trading_robot' => '"https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'trading_vps' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'trading_robot' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
     'btrader_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
 ];
 
