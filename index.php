@@ -276,7 +276,7 @@ $file_sizes = [
                     <h2 class="card-title">Indicator Tview</h2>
                 </div>
                 
-                <div class="card-price">$15.00 <span>/month</span></div>
+                <div class="card-price">$15.00 <span>/LifeTime</span></div>
                 
                 <ul class="features-list">
                     <li>Order Block</li>
