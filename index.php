@@ -186,6 +186,27 @@ $file_sizes = [
             text-align: center;
         }
 
+        .admin-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .admin-link:hover {
+            background: rgba(41, 128, 185, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -199,6 +220,7 @@ $file_sizes = [
             justify-content: center;
             gap: 30px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .footer-links a {
@@ -223,10 +245,22 @@ $file_sizes = [
             .download-card {
                 padding: 20px;
             }
+            
+            .admin-link {
+                position: static;
+                display: block;
+                margin: 20px auto;
+                width: fit-content;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Admin Panel Link -->
+    <a href="licenses.php" class="admin-link">
+        <i class="fas fa-user-shield"></i> Admin Panel
+    </a>
+    
     <div class="container">
         <header>
             <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
@@ -332,6 +366,7 @@ $file_sizes = [
                 <a href="#">Terms of Service</a>
                 <a href="#">Privacy Policy</a>
                 <a href="#">Support Center</a>
+                <a href="licenses.php">License Management</a>
             </div>
             
             <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
