@@ -1,14 +1,14 @@
 <?php
 // Download URLs for each product
 $download_links = [
-    'trading_vps' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'indicator_Tview' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
     'trading_robot' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
-    'btrader_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
+    'Setting_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
 ];
 
 // File sizes (optional, for display)
 $file_sizes = [
-    'trading_vps' => '0 MB',
+    'indicator_Tview' => '0 MB',
     'trading_robot' => '62 MB',
     'Setting_tools' => '28 MB'
 ];
