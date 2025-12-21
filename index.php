@@ -365,8 +365,8 @@ $file_sizes = [
             <div class="footer-links">
                 <a href="#">Terms of Service</a>
                 <a href="#">Privacy Policy</a>
-                <a href="#">Support Center</a>
-                <a href="licenses.php">License Management</a>
+                <a href="https://t.me/ZEAHONGMOD">Support Center</a>
+                <a href="https://t.me/ZEAHONGMOD">Get License</a>
             </div>
             
             <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
