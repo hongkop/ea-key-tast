@@ -38,14 +38,18 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #e0e0e0;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* Login Page Styles (Your Original Design) */
+        /* Login Page Styles - Centered */
         .login-page {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            width: 100%;
             padding: 20px;
         }
 
@@ -56,8 +60,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
+            margin: 0 auto;
         }
 
+        /* Header - Centered */
         .header {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
@@ -80,12 +86,15 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             margin-top: 5px;
         }
 
+        /* Content - Centered */
         .content {
             padding: 40px 30px;
+            text-align: center;
         }
 
         .form-container {
             display: block;
+            text-align: left;
         }
 
         .form-title {
@@ -153,10 +162,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
-
         .btn-secondary {
             background: transparent;
             color: #6a11cb;
@@ -181,16 +186,13 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             cursor: pointer;
         }
 
-        .toggle-link a:hover {
-            text-decoration: underline;
-        }
-
         .message {
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
             display: none;
             animation: slideIn 0.3s ease;
+            text-align: center;
         }
 
         @keyframes slideIn {
@@ -248,23 +250,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             text-decoration: none;
         }
 
-        .forgot-password a:hover {
-            color: #6a11cb;
-            text-decoration: underline;
-        }
-
-        .powered-by {
-            text-align: center;
-            margin-top: 30px;
-            color: #999;
-            font-size: 12px;
-        }
-
-        .powered-by span {
-            color: #6a11cb;
-            font-weight: 600;
-        }
-
         .admin-note {
             text-align: center;
             margin-top: 20px;
@@ -275,31 +260,47 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             color: #666;
         }
 
-        .admin-note a {
-            color: #6a11cb;
-            text-decoration: none;
-            font-weight: 600;
+        .powered-by {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
         }
 
-        .admin-note a:hover {
-            text-decoration: underline;
-        }
-
-        /* Dashboard (Your Original Download Page Design) */
+        /* Dashboard - Centered Layout */
         .dashboard {
             display: none;
-            min-height: 100vh;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
         }
 
-        .dashboard .container {
-            max-width: 1200px;
-            background: transparent;
-            box-shadow: none;
-            border-radius: 0;
+        /* Admin Panel Link - Top Right */
+        .admin-panel-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            transition: all 0.3s;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* Header for Dashboard */
+        .admin-panel-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.6);
+        }
+
+        /* Dashboard Header - Centered */
         .dashboard-header {
             background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
             color: white;
@@ -308,6 +309,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             margin-bottom: 30px;
             text-align: center;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
         }
 
         .dashboard-header h1 {
@@ -325,7 +327,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             line-height: 1.6;
         }
 
-        /* User Info in Header */
+        /* User Info - Centered */
         .user-header-info {
             display: flex;
             justify-content: space-between;
@@ -384,12 +386,140 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
 
-        /* Download Grid (Your Original Design) */
+        /* License Section - Centered */
+        .license-section {
+            width: 100%;
+            margin: 40px 0;
+        }
+
+        .license-card {
+            background: rgba(25, 40, 50, 0.85);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(75, 181, 67, 0.3);
+            text-align: center;
+        }
+
+        .license-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .license-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            color: #4bb543;
+        }
+
+        .license-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .license-key-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 2px dashed #4bb543;
+        }
+
+        .license-key-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            letter-spacing: 3px;
+            color: #4bb543;
+            font-weight: bold;
+            word-break: break-all;
+            text-align: center;
+        }
+
+        .copy-btn {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 16px;
+            background: linear-gradient(135deg, #4bb543 0%, #3a9d32 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(75, 181, 67, 0.4);
+        }
+
+        .copy-btn:disabled {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            cursor: not-allowed;
+        }
+
+        .license-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #a0c8e0;
+            margin-bottom: 10px;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .info-value.active {
+            color: #4bb543;
+        }
+
+        .info-value.expired {
+            color: #e74c3c;
+        }
+
+        /* Download Grid - Centered */
         .download-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
-            padding: 20px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px 0;
         }
 
         .download-card {
@@ -402,6 +532,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             display: flex;
             flex-direction: column;
             height: 100%;
+            text-align: left;
         }
 
         .download-card:hover {
@@ -498,10 +629,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             transform: translateY(-2px);
         }
 
-        .download-btn i {
-            margin-right: 10px;
-        }
-
         .instructions {
             margin-top: 15px;
             font-size: 0.85rem;
@@ -509,129 +636,11 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             text-align: center;
         }
 
-        /* License Card */
-        .license-section {
-            margin: 40px 0;
-            padding: 20px;
-        }
-
-        .license-card {
-            background: rgba(25, 40, 50, 0.85);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(75, 181, 67, 0.3);
-            margin-top: 20px;
-        }
-
-        .license-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .license-icon {
-            font-size: 2.5rem;
-            margin-right: 15px;
-            color: #4bb543;
-        }
-
-        .license-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .license-key-box {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            text-align: center;
-            border: 2px dashed #4bb543;
-        }
-
-        .license-key-display {
-            font-family: 'Courier New', monospace;
-            font-size: 1.8rem;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            letter-spacing: 3px;
-            color: #4bb543;
-            font-weight: bold;
-            word-break: break-all;
-        }
-
-        .copy-btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #4bb543 0%, #3a9d32 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(75, 181, 67, 0.4);
-        }
-
-        .copy-btn:disabled {
-            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-            cursor: not-allowed;
-        }
-
-        .license-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 25px 0;
-        }
-
-        .info-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .info-label {
-            font-size: 0.9rem;
-            color: #a0c8e0;
-            margin-bottom: 10px;
-        }
-
-        .info-value {
-            font-size: 1.3rem;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .info-value.active {
-            color: #4bb543;
-        }
-
-        .info-value.expired {
-            color: #e74c3c;
-        }
-
-        /* Footer (Your Original Design) */
+        /* Footer - Centered */
         footer {
+            width: 100%;
             text-align: center;
-            padding: 40px 20px;
+            padding: 40px 0;
             margin-top: 40px;
             color: #a0c8e0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -650,38 +659,13 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             text-decoration: none;
         }
 
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
-        /* Admin Panel Link */
-        .admin-panel-link {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-            transition: all 0.3s;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .admin-panel-link:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.6);
-        }
-
-        /* Responsive */
+        /* Responsive - Centered */
         @media (max-width: 768px) {
-            .download-grid {
-                grid-template-columns: 1fr;
+            .container {
+                margin: 10px;
+            }
+            
+            .dashboard {
                 padding: 10px;
             }
             
@@ -695,6 +679,15 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 text-align: center;
             }
             
+            .user-welcome {
+                text-align: center;
+            }
+            
+            .download-grid {
+                grid-template-columns: 1fr;
+                padding: 0 10px;
+            }
+            
             .download-card {
                 padding: 20px;
             }
@@ -704,6 +697,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 padding: 15px;
             }
             
+            .license-info {
+                grid-template-columns: 1fr;
+            }
+            
             .admin-panel-link {
                 position: static;
                 display: block;
@@ -711,18 +708,36 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 width: fit-content;
             }
         }
+
+        @media (max-width: 480px) {
+            .dashboard-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .license-title {
+                font-size: 1.5rem;
+            }
+            
+            .card-title {
+                font-size: 1.5rem;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Admin Panel Link (Always visible) -->
+    <!-- Admin Panel Link -->
     <a href="licenses.php" class="admin-panel-link">
         <i class="fas fa-user-shield"></i> Admin Panel
     </a>
 
-    <!-- Login Page (Initially shown) -->
+    <!-- Login Page -->
     <div class="login-page" id="loginPage">
         <div class="container">
-            <!-- Header -->
             <div class="header">
                 <div class="logo">
                     <i class="fas fa-user-shield"></i>
@@ -731,9 +746,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 <p>Secure Authentication System</p>
             </div>
 
-            <!-- Content Area -->
             <div class="content">
-                <!-- Messages -->
                 <div class="message info" id="infoMessage">
                     <i class="fas fa-info-circle"></i> Initializing system...
                 </div>
@@ -741,7 +754,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 <div class="message error" id="errorMessage"></div>
                 <div class="message success" id="successMessage"></div>
 
-                <!-- Login Form (Default) -->
+                <!-- Login Form -->
                 <div class="form-container" id="loginForm">
                     <h2 class="form-title">Welcome Back</h2>
                     <form id="loginFormElement">
@@ -846,186 +859,184 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         </div>
     </div>
 
-    <!-- Dashboard (Hidden until login) -->
+    <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
-        <div class="container">
-            <!-- Dashboard Header -->
-            <header class="dashboard-header">
-                <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
-                <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
-                
-                <div class="user-header-info">
-                    <div class="user-welcome">
-                        <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
-                        <p>Signed in as: <span id="userEmailDisplay"></span></p>
-                    </div>
-                    <div class="user-actions">
-                        <div class="user-avatar" id="userAvatar">U</div>
-                        <button class="logout-btn" onclick="logout()">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
-                </div>
-            </header>
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
+            <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
             
-            <!-- License Card -->
-            <div class="license-section">
-                <div class="license-card">
-                    <div class="license-header">
-                        <div class="license-icon">
-                            <i class="fas fa-key"></i>
-                        </div>
-                        <h2 class="license-title">Your MT5 EA License Key</h2>
-                    </div>
-                    
-                    <div class="license-key-box">
-                        <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
-                        
-                        <div class="license-key-display" id="licenseKeyDisplay">
-                            <i class="fas fa-spinner fa-spin"></i> Loading license key...
-                        </div>
-                        
-                        <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
-                            <i class="fas fa-copy"></i> Copy License Key
-                        </button>
-                        
-                        <div class="license-info">
-                            <div class="info-item">
-                                <div class="info-label">Status</div>
-                                <div class="info-value active" id="licenseStatus">Active</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Expires</div>
-                                <div class="info-value" id="licenseExpiry">2024-12-31</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Device</div>
-                                <div class="info-value" id="deviceStatus">Not Activated</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543;">
-                        <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-info-circle"></i> How to Use Your License:
-                        </h3>
-                        <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
-                            <li style="margin-bottom: 8px;">Copy your license key above</li>
-                            <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
-                            <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
-                            <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
-                            <li>Your EA will be activated for one device only</li>
-                        </ol>
-                    </div>
+            <div class="user-header-info">
+                <div class="user-welcome">
+                    <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
+                    <p>Signed in as: <span id="userEmailDisplay"></span></p>
+                </div>
+                <div class="user-actions">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <button class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
                 </div>
             </div>
-            
-            <!-- Download Grid (Your Original Design) -->
-            <div class="download-grid">
-                <!-- Trading VPS Card -->
-                <div class="download-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <i class="fas fa-server"></i>
-                        </div>
-                        <h2 class="card-title">Trading VPS</h2>
+        </header>
+        
+        <!-- License Card -->
+        <div class="license-section">
+            <div class="license-card">
+                <div class="license-header">
+                    <div class="license-icon">
+                        <i class="fas fa-key"></i>
                     </div>
-                    
-                    <div class="card-price">$13.00 <span>/month</span></div>
-                    
-                    <ul class="features-list">
-                        <li>12-24 GB RAM for strong performance</li>
-                        <li>24/7 uptime for bot trading</li>
-                        <li>Pre-installed MT5</li>
-                        <li>Remote Desktop access (RDP) from anywhere</li>
-                        <li>Easy payment with local Cambodian banks</li>
-                    </ul>
-                    
-                    <div class="file-info">
-                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
-                    </div>
-                    
-                    <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
-                        <i class="fas fa-download"></i> Download VPS Setup
-                    </a>
-                    <p class="instructions">Includes setup guide and configuration files</p>
+                    <h2 class="license-title">Your MT5 EA License Key</h2>
                 </div>
                 
-                <!-- Trading Robot Card -->
-                <div class="download-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <i class="fas fa-robot"></i>
+                <div class="license-key-box">
+                    <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
+                    
+                    <div class="license-key-display" id="licenseKeyDisplay">
+                        <i class="fas fa-spinner fa-spin"></i> Loading license key...
+                    </div>
+                    
+                    <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
+                        <i class="fas fa-copy"></i> Copy License Key
+                    </button>
+                    
+                    <div class="license-info">
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value active" id="licenseStatus">Active</div>
                         </div>
-                        <h2 class="card-title">Trading Robot</h2>
+                        <div class="info-item">
+                            <div class="info-label">Expires</div>
+                            <div class="info-value" id="licenseExpiry">2024-12-31</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Device</div>
+                            <div class="info-value" id="deviceStatus">Not Activated</div>
+                        </div>
                     </div>
-                    
-                    <div class="card-price">$20.00 <span>/month</span></div>
-                    
-                    <ul class="features-list">
-                        <li>SnIPx2 Flip EA for MetaTrader 5</li>
-                        <li>Grid trading system</li>
-                        <li>Dynamic lot sizing</li>
-                        <li>Adaptive trading</li>
-                        <li>Smart hedge system</li>
-                        <li>Smart lock system</li>
-                        <li>+9 more advanced features</li>
-                    </ul>
-                    
-                    <div class="file-info">
-                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
-                    </div>
-                    
-                    <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
-                        <i class="fas fa-download"></i> Download EA & Settings
-                    </a>
-                    <p class="instructions">Extract to your MT5 Experts folder</p>
                 </div>
                 
-                <!-- BTrader Tools Card -->
-                <div class="download-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <h2 class="card-title">BTrader Tools</h2>
-                    </div>
-                    
-                    <div class="card-price">$49.99 <span>/month</span></div>
-                    
-                    <ul class="features-list">
-                        <li>Access BTrader Tools</li>
-                        <li>BTrader Toolkits</li>
-                        <li>BTrader Concept</li>
-                        <li>BTrader Sessions</li>
-                        <li>BTrader Algo</li>
-                    </ul>
-                    
-                    <div class="file-info">
-                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
-                    </div>
-                    
-                    <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
-                        <i class="fas fa-download"></i> Download Toolkit
-                    </a>
-                    <p class="instructions">Full trading toolkit with installation guide</p>
+                <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543; text-align: left;">
+                    <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-info-circle"></i> How to Use Your License:
+                    </h3>
+                    <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
+                        <li style="margin-bottom: 8px;">Copy your license key above</li>
+                        <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
+                        <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
+                        <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
+                        <li>Your EA will be activated for one device only</li>
+                    </ol>
                 </div>
             </div>
-            
-            <footer>
-                <p>Need help with installation? Contact support@example.com</p>
-                <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
-                
-                <div class="footer-links">
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Support Center</a>
-                    <a href="licenses.php">License Management</a>
-                </div>
-                
-                <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
-            </footer>
         </div>
+        
+        <!-- Download Grid -->
+        <div class="download-grid">
+            <!-- Trading VPS Card -->
+            <div class="download-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <h2 class="card-title">Trading VPS</h2>
+                </div>
+                
+                <div class="card-price">$13.00 <span>/month</span></div>
+                
+                <ul class="features-list">
+                    <li>12-24 GB RAM for strong performance</li>
+                    <li>24/7 uptime for bot trading</li>
+                    <li>Pre-installed MT5</li>
+                    <li>Remote Desktop access (RDP) from anywhere</li>
+                    <li>Easy payment with local Cambodian banks</li>
+                </ul>
+                
+                <div class="file-info">
+                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
+                </div>
+                
+                <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
+                    <i class="fas fa-download"></i> Download VPS Setup
+                </a>
+                <p class="instructions">Includes setup guide and configuration files</p>
+            </div>
+            
+            <!-- Trading Robot Card -->
+            <div class="download-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h2 class="card-title">Trading Robot</h2>
+                </div>
+                
+                <div class="card-price">$20.00 <span>/month</span></div>
+                
+                <ul class="features-list">
+                    <li>SnIPx2 Flip EA for MetaTrader 5</li>
+                    <li>Grid trading system</li>
+                    <li>Dynamic lot sizing</li>
+                    <li>Adaptive trading</li>
+                    <li>Smart hedge system</li>
+                    <li>Smart lock system</li>
+                    <li>+9 more advanced features</li>
+                </ul>
+                
+                <div class="file-info">
+                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
+                </div>
+                
+                <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
+                    <i class="fas fa-download"></i> Download EA & Settings
+                </a>
+                <p class="instructions">Extract to your MT5 Experts folder</p>
+            </div>
+            
+            <!-- BTrader Tools Card -->
+            <div class="download-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h2 class="card-title">BTrader Tools</h2>
+                </div>
+                
+                <div class="card-price">$49.99 <span>/month</span></div>
+                
+                <ul class="features-list">
+                    <li>Access BTrader Tools</li>
+                    <li>BTrader Toolkits</li>
+                    <li>BTrader Concept</li>
+                    <li>BTrader Sessions</li>
+                    <li>BTrader Algo</li>
+                </ul>
+                
+                <div class="file-info">
+                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
+                </div>
+                
+                <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
+                    <i class="fas fa-download"></i> Download Toolkit
+                </a>
+                <p class="instructions">Full trading toolkit with installation guide</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Need help with installation? Contact support@example.com</p>
+            <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
+            
+            <div class="footer-links">
+                <a href="#">Terms of Service</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Support Center</a>
+                <a href="licenses.php">License Management</a>
+            </div>
+            
+            <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
+        </footer>
     </div>
 
     <!-- Firebase SDK -->
@@ -1133,13 +1144,25 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         // Update user license information
         async function updateUserLicenseInfo(userEmail) {
             try {
-                // Fetch user's license from your API
-                const response = await fetch(`login.php?action=get_license&email=${encodeURIComponent(userEmail)}`);
-                const data = await response.text();
+                // Fetch user's license from API
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=get_license&email=${encodeURIComponent(userEmail)}`
+                });
                 
-                if (data.includes('INVALID') || data.includes('NOT_FOUND')) {
-                    // No license found for this user
-                    licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                
+                const data = await response.text();
+                console.log('License API response:', data);
+                
+                if (data.includes('NOT_FOUND') || data.includes('INVALID') || data.trim() === '') {
+                    // No license found
+                    licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c; font-size: 1.2rem;">No license assigned</span>';
                     licenseStatus.textContent = 'No License';
                     licenseStatus.className = 'info-value expired';
                     licenseExpiry.textContent = 'N/A';
@@ -1148,34 +1171,61 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
                     copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
                     
-                    // Show message to contact admin
-                    const message = document.createElement('p');
-                    message.style.color = '#e74c3c';
-                    message.style.marginTop = '15px';
-                    message.style.textAlign = 'center';
-                    message.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No license assigned. Contact admin to get a license key.';
-                    licenseKeyDisplay.parentNode.appendChild(message);
+                    // Show contact admin message
+                    const licenseBox = document.querySelector('.license-key-box');
+                    const existingMsg = licenseBox.querySelector('.no-license-msg');
+                    if (!existingMsg) {
+                        const message = document.createElement('p');
+                        message.className = 'no-license-msg';
+                        message.style.color = '#e74c3c';
+                        message.style.marginTop = '15px';
+                        message.style.textAlign = 'center';
+                        message.style.fontSize = '0.9rem';
+                        message.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Contact admin to get a license key.';
+                        licenseBox.appendChild(message);
+                    }
                 } else {
                     // Parse license info
                     const parts = data.split('|');
+                    console.log('License parts:', parts);
+                    
                     if (parts.length >= 4) {
-                        licenseKeyDisplay.textContent = parts[0];
-                        licenseStatus.textContent = parts[1];
-                        licenseStatus.className = parts[1] === 'active' ? 'info-value active' : 'info-value expired';
-                        licenseExpiry.textContent = parts[2];
-                        deviceStatus.textContent = parts[3] || 'Not Activated';
+                        const licenseKey = parts[0];
+                        const status = parts[1];
+                        const expiry = parts[2];
+                        const device = parts[3];
                         
-                        // Store license key in global variable for copying
-                        window.userLicenseKey = parts[0];
+                        // Display license
+                        licenseKeyDisplay.textContent = licenseKey;
+                        licenseStatus.textContent = status;
+                        licenseStatus.className = status === 'active' ? 'info-value active' : 'info-value expired';
+                        licenseExpiry.textContent = expiry;
+                        deviceStatus.textContent = device || 'Not Activated';
+                        
+                        // Enable copy button
+                        copyButton.disabled = false;
+                        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                        copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                        
+                        // Store for copying
+                        window.userLicenseKey = licenseKey;
+                        
+                        // Remove any existing "no license" message
+                        const noLicenseMsg = document.querySelector('.no-license-msg');
+                        if (noLicenseMsg) {
+                            noLicenseMsg.remove();
+                        }
+                    } else {
+                        throw new Error('Invalid license data format');
                     }
                 }
             } catch (error) {
                 console.error('Error fetching license info:', error);
-                licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error loading license</span>';
+                licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error loading license. Try refreshing.</span>';
             }
         }
 
-        // Show/Hide Forms (same as before)
+        // Show/Hide Forms
         window.showSignup = function() {
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
@@ -1241,7 +1291,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
         }
 
-        // Login form submission (same as before)
+        // Login form submission
         document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1303,7 +1353,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
         });
 
-        // Signup form submission (same as before)
+        // Signup form submission
         document.getElementById('signupFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1363,7 +1413,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
         });
 
-        // Forgot password form submission (same as before)
+        // Forgot password form submission
         document.getElementById('forgotPasswordFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1405,90 +1455,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 showMessage('error', 'Failed to sign out: ' + error.message);
             }
         };
-
-        // Update user license information
-async function updateUserLicenseInfo(userEmail) {
-    try {
-        // Fetch user's license from API
-        const response = await fetch('login.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `action=get_license&email=${encodeURIComponent(userEmail)}`
-        });
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        
-        const data = await response.text();
-        console.log('License API response:', data); // Debug log
-        
-        if (data.includes('NOT_FOUND') || data.includes('INVALID') || data.trim() === '') {
-            // No license found
-            licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c; font-size: 1.2rem;">No license assigned</span>';
-            licenseStatus.textContent = 'No License';
-            licenseStatus.className = 'info-value expired';
-            licenseExpiry.textContent = 'N/A';
-            deviceStatus.textContent = 'N/A';
-            copyButton.disabled = true;
-            copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
-            copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
-            
-            // Show contact admin message
-            const licenseBox = document.querySelector('.license-key-box');
-            const existingMsg = licenseBox.querySelector('.no-license-msg');
-            if (!existingMsg) {
-                const message = document.createElement('p');
-                message.className = 'no-license-msg';
-                message.style.color = '#e74c3c';
-                message.style.marginTop = '15px';
-                message.style.textAlign = 'center';
-                message.style.fontSize = '0.9rem';
-                message.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Contact admin to get a license key.';
-                licenseBox.appendChild(message);
-            }
-        } else {
-            // Parse license info
-            const parts = data.split('|');
-            console.log('License parts:', parts); // Debug log
-            
-            if (parts.length >= 4) {
-                const licenseKey = parts[0];
-                const status = parts[1];
-                const expiry = parts[2];
-                const device = parts[3];
-                
-                // Display license
-                licenseKeyDisplay.textContent = licenseKey;
-                licenseStatus.textContent = status;
-                licenseStatus.className = status === 'active' ? 'info-value active' : 'info-value expired';
-                licenseExpiry.textContent = expiry;
-                deviceStatus.textContent = device || 'Not Activated';
-                
-                // Enable copy button
-                copyButton.disabled = false;
-                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
-                copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
-                
-                // Store for copying
-                window.userLicenseKey = licenseKey;
-                
-                // Remove any existing "no license" message
-                const noLicenseMsg = document.querySelector('.no-license-msg');
-                if (noLicenseMsg) {
-                    noLicenseMsg.remove();
-                }
-            } else {
-                throw new Error('Invalid license data format');
-            }
-        }
-    } catch (error) {
-        console.error('Error fetching license info:', error);
-        licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error loading license. Try refreshing.</span>';
-    }
-}
 
         // Copy license key function
         window.copyLicenseKey = function() {
