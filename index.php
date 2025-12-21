@@ -876,6 +876,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                         <i class="fas fa-key"></i>
                     </div>
                     <h2 class="license-title">Your MT5 EA License Key</h2>
+                    <a href="https://t.me/ZEAHONGMOD">Get License</a>
                 </div>
                 
                 <div class="license-key-box">
