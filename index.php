@@ -1,19 +1,18 @@
 <?php
 // Download URLs for each product
 $download_links = [
-    'indicator_Tview' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'trading_vps' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
     'trading_robot' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
-    'Setting_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
+    'btrader_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
 ];
 
 // File sizes (optional, for display)
 $file_sizes = [
-    'indicator_Tview' => '0 MB',
-    'trading_robot' => '62 MB',
-    'Setting_tools' => '28 MB'
+    'trading_vps' => '45 MB',
+    'trading_robot' => '28 MB',
+    'btrader_tools' => '62 MB'
 ];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -274,7 +273,7 @@ $file_sizes = [
                     <div class="card-icon">
                         <i class="fas fa-server"></i>
                     </div>
-                    <h2 class="card-title">Trading VPS</h2>
+                    <h2 class="card-title">Indicator Tview</h2>
                 </div>
                 
                 <div class="card-price">$13.00 <span>/month</span></div>
@@ -334,7 +333,7 @@ $file_sizes = [
                     <div class="card-icon">
                         <i class="fas fa-tools"></i>
                     </div>
-                    <h2 class="card-title">BTrader Tools</h2>
+                    <h2 class="card-title">Setting Tools</h2>
                 </div>
                 
                 <div class="card-price">$49.99 <span>/month</span></div>
