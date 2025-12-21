@@ -3,9 +3,9 @@ session_start();
 
 // Download URLs for each product
 $download_links = [
-    'trading_vps' => 'https://example.com/downloads/trading-vps-setup.zip',
-    'trading_robot' => 'https://example.com/downloads/snipx2-flip-ea.zip',
-    'btrader_tools' => 'https://example.com/downloads/btrader-tools-package.zip'
+    'trading_vps' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'trading_robot' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'btrader_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
 ];
 
 // File sizes (optional, for display)
@@ -730,11 +730,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
     </style>
 </head>
 <body>
-    <!-- Admin Panel Link -->
-    <a href="licenses.php" class="admin-panel-link">
-        <i class="fas fa-user-shield"></i> Admin Panel
-    </a>
-
+    
     <!-- Login Page -->
     <div class="login-page" id="loginPage">
         <div class="container">
@@ -781,14 +777,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     </form>
                     <div class="toggle-link">
                         Don't have an account? <a onclick="showSignup()">Sign up now</a>
-                    </div>
-                    
-                    <div class="admin-note">
-                        Admin? <a href="licenses.php">Login to Admin Panel</a>
-                    </div>
-                    
-                    <div class="powered-by">
-                        Powered by <span>Firebase</span> • Secure Authentication
                     </div>
                 </div>
 
@@ -1021,14 +1009,14 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         </div>
         
         <footer>
-            <p>Need help with installation? Contact support@example.com</p>
+            <p>Need help with installation? Contact support Telegram @ZEAHONGMOD</p>
             <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
             
             <div class="footer-links">
                 <a href="#">Terms of Service</a>
                 <a href="#">Privacy Policy</a>
-                <a href="#">Support Center</a>
-                <a href="licenses.php">License Management</a>
+                <a href="https://t.me/ZEAHONGMOD">Support Center</a>
+                <a href="https://t.me/ZEAHONGMOD">Get License</a>
             </div>
             
             <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
