@@ -1,29 +1,31 @@
 <?php
-// licenses.php - Web interface for managing licenses with login protection
+// licenses.php - Admin panel with user license assignment
 session_start();
 
 // Enable SQLite database
 define('DB_FILE', 'licenses.db');
-define('ADMIN_USERNAME', '11');
-define('ADMIN_PASSWORD', '11'); // Change this to a strong password!
 
-// Check if user is logged in
-function isLoggedIn() {
-    return isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true;
+// Admin credentials (Change these!)
+define('ADMIN_USERNAME', 'admin');
+define('ADMIN_PASSWORD', 'admin123');
+
+// Check if admin is logged in
+function isAdminLoggedIn() {
+    return isset($_SESSION['admin_loggedin']) && $_SESSION['admin_loggedin'] === true;
 }
 
-// Handle login
-if (isset($_POST['login'])) {
+// Handle admin login
+if (isset($_POST['admin_login'])) {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     
     if ($username === ADMIN_USERNAME && $password === ADMIN_PASSWORD) {
-        $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = $username;
+        $_SESSION['admin_loggedin'] = true;
+        $_SESSION['admin_username'] = $username;
         header("Location: licenses.php");
         exit;
     } else {
-        $login_error = "Invalid username or password!";
+        $login_error = "Invalid admin credentials!";
     }
 }
 
@@ -34,9 +36,9 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// If not logged in, show login page
-if (!isLoggedIn()) {
-    showLoginPage();
+// If not logged in, show admin login page
+if (!isAdminLoggedIn()) {
+    showAdminLoginPage();
     exit;
 }
 
@@ -45,24 +47,37 @@ function initDatabase() {
     if (!file_exists(DB_FILE)) {
         $db = new SQLite3(DB_FILE);
         
-        // Create licenses table
+        // Create licenses table with user_email field
         $db->exec("CREATE TABLE IF NOT EXISTS licenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             license_key TEXT UNIQUE NOT NULL,
+            customer_info TEXT,
+            user_email TEXT,
             customer_type TEXT DEFAULT 'User',
             device_id TEXT,
             status TEXT DEFAULT 'active',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             activated_at DATETIME,
-            expires_at DATETIME
+            expires_at DATETIME,
+            last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+        
+        // Create users table to track Firebase users
+        $db->exec("CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            firebase_uid TEXT,
+            email TEXT UNIQUE NOT NULL,
+            display_name TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_login DATETIME
         )");
         
         // Create default admin license
         $default_key = generateLicenseKey();
         $expires = date('Y-m-d H:i:s', strtotime('+365 days'));
-        $stmt = $db->prepare("INSERT INTO licenses (license_key, customer_type, expires_at) VALUES (?, ?, ?)");
+        $stmt = $db->prepare("INSERT INTO licenses (license_key, customer_info, expires_at) VALUES (?, ?, ?)");
         $stmt->bindValue(1, $default_key, SQLITE3_TEXT);
-        $stmt->bindValue(2, 'Admin', SQLITE3_TEXT);
+        $stmt->bindValue(2, 'Admin Account', SQLITE3_TEXT);
         $stmt->bindValue(3, $expires, SQLITE3_TEXT);
         $stmt->execute();
         
@@ -83,11 +98,11 @@ function generateLicenseKey() {
     return $key;
 }
 
-// Initialize database for web interface
+// Initialize database
 initDatabase();
 $db = new SQLite3(DB_FILE);
 
-// Handle web actions
+// Handle admin actions
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
     
@@ -95,17 +110,23 @@ if (isset($_GET['action'])) {
         createLicense($db);
     } elseif ($action === 'edit' && isset($_POST['license_key'])) {
         editLicense($db);
+    } elseif ($action === 'assign' && isset($_POST['license_key'])) {
+        assignLicenseToUser($db);
     } elseif ($action === 'delete' && isset($_GET['key'])) {
         deleteLicense($db, $_GET['key']);
     } elseif ($action === 'reset' && isset($_GET['key'])) {
         resetDevice($db, $_GET['key']);
     } elseif ($action === 'regenerate' && isset($_GET['key'])) {
         regenerateKey($db, $_GET['key']);
+    } elseif ($action === 'unassign' && isset($_GET['key'])) {
+        unassignLicense($db, $_GET['key']);
     }
 }
 
 // Create new license
 function createLicense($db) {
+    $customer_info = $_POST['customer_info'] ?? '';
+    $user_email = $_POST['user_email'] ?? '';
     $customer_type = $_POST['customer_type'];
     $duration = isset($_POST['duration']) ? intval($_POST['duration']) : 365;
     $license_key = isset($_POST['license_key']) ? trim($_POST['license_key']) : generateLicenseKey();
@@ -114,7 +135,7 @@ function createLicense($db) {
         $license_key = generateLicenseKey();
     }
     
-    // Validate license key format (XXXX-XXXX-XXXX-XXXX)
+    // Validate license key format
     if (!preg_match('/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/', $license_key)) {
         header("Location: licenses.php?error=Invalid license key format. Use format: XXXX-XXXX-XXXX-XXXX");
         exit;
@@ -122,8 +143,10 @@ function createLicense($db) {
     
     $expires = date('Y-m-d H:i:s', strtotime("+$duration days"));
     
-    $stmt = $db->prepare("INSERT INTO licenses (license_key, customer_type, expires_at) VALUES (:key, :customer_type, :expires)");
+    $stmt = $db->prepare("INSERT INTO licenses (license_key, customer_info, user_email, customer_type, expires_at) VALUES (:key, :customer_info, :user_email, :customer_type, :expires)");
     $stmt->bindValue(':key', $license_key, SQLITE3_TEXT);
+    $stmt->bindValue(':customer_info', $customer_info, SQLITE3_TEXT);
+    $stmt->bindValue(':user_email', $user_email, SQLITE3_TEXT);
     $stmt->bindValue(':customer_type', $customer_type, SQLITE3_TEXT);
     $stmt->bindValue(':expires', $expires, SQLITE3_TEXT);
     
@@ -140,6 +163,8 @@ function createLicense($db) {
 function editLicense($db) {
     $license_key = $_POST['license_key'];
     $new_license_key = isset($_POST['new_license_key']) ? trim($_POST['new_license_key']) : $license_key;
+    $customer_info = $_POST['customer_info'] ?? '';
+    $user_email = $_POST['user_email'] ?? '';
     $customer_type = $_POST['customer_type'];
     $duration = isset($_POST['duration']) ? intval($_POST['duration']) : 365;
     $status = $_POST['status'];
@@ -156,15 +181,19 @@ function editLicense($db) {
     
     if ($new_license_key !== $license_key) {
         // Update with new key
-        $stmt = $db->prepare("UPDATE licenses SET license_key = :new_key, customer_type = :customer_type, status = :status, expires_at = :expires WHERE license_key = :old_key");
+        $stmt = $db->prepare("UPDATE licenses SET license_key = :new_key, customer_info = :customer_info, user_email = :user_email, customer_type = :customer_type, status = :status, expires_at = :expires, last_updated = datetime('now') WHERE license_key = :old_key");
         $stmt->bindValue(':new_key', $new_license_key, SQLITE3_TEXT);
+        $stmt->bindValue(':customer_info', $customer_info, SQLITE3_TEXT);
+        $stmt->bindValue(':user_email', $user_email, SQLITE3_TEXT);
         $stmt->bindValue(':customer_type', $customer_type, SQLITE3_TEXT);
         $stmt->bindValue(':status', $status, SQLITE3_TEXT);
         $stmt->bindValue(':expires', $expires, SQLITE3_TEXT);
         $stmt->bindValue(':old_key', $license_key, SQLITE3_TEXT);
     } else {
         // Update without changing key
-        $stmt = $db->prepare("UPDATE licenses SET customer_type = :customer_type, status = :status, expires_at = :expires WHERE license_key = :key");
+        $stmt = $db->prepare("UPDATE licenses SET customer_info = :customer_info, user_email = :user_email, customer_type = :customer_type, status = :status, expires_at = :expires, last_updated = datetime('now') WHERE license_key = :key");
+        $stmt->bindValue(':customer_info', $customer_info, SQLITE3_TEXT);
+        $stmt->bindValue(':user_email', $user_email, SQLITE3_TEXT);
         $stmt->bindValue(':customer_type', $customer_type, SQLITE3_TEXT);
         $stmt->bindValue(':status', $status, SQLITE3_TEXT);
         $stmt->bindValue(':expires', $expires, SQLITE3_TEXT);
@@ -180,6 +209,55 @@ function editLicense($db) {
     }
 }
 
+// Assign license to user by email
+function assignLicenseToUser($db) {
+    $license_key = $_POST['license_key'];
+    $user_email = trim($_POST['assign_email']);
+    
+    if (empty($user_email) || !filter_var($user_email, FILTER_VALIDATE_EMAIL)) {
+        header("Location: licenses.php?error=Please enter a valid email address");
+        exit;
+    }
+    
+    // Check if user already has a license
+    $check_stmt = $db->prepare("SELECT * FROM licenses WHERE user_email = :email AND status = 'active'");
+    $check_stmt->bindValue(':email', $user_email, SQLITE3_TEXT);
+    $existing = $check_stmt->execute()->fetchArray(SQLITE3_ASSOC);
+    
+    if ($existing) {
+        header("Location: licenses.php?error=User $user_email already has an active license: " . $existing['license_key']);
+        exit;
+    }
+    
+    // Assign license to user
+    $stmt = $db->prepare("UPDATE licenses SET user_email = :email, last_updated = datetime('now') WHERE license_key = :key");
+    $stmt->bindValue(':email', $user_email, SQLITE3_TEXT);
+    $stmt->bindValue(':key', $license_key, SQLITE3_TEXT);
+    
+    if ($stmt->execute()) {
+        // Update customer info if empty
+        $update_info = $db->prepare("UPDATE licenses SET customer_info = :info WHERE license_key = :key AND (customer_info IS NULL OR customer_info = '')");
+        $update_info->bindValue(':info', $user_email, SQLITE3_TEXT);
+        $update_info->bindValue(':key', $license_key, SQLITE3_TEXT);
+        $update_info->execute();
+        
+        header("Location: licenses.php?success=License $license_key assigned to $user_email");
+        exit;
+    } else {
+        header("Location: licenses.php?error=Failed to assign license");
+        exit;
+    }
+}
+
+// Unassign license from user
+function unassignLicense($db, $key) {
+    $stmt = $db->prepare("UPDATE licenses SET user_email = NULL, last_updated = datetime('now') WHERE license_key = :key");
+    $stmt->bindValue(':key', $key, SQLITE3_TEXT);
+    $stmt->execute();
+    header("Location: licenses.php?success=License unassigned from user");
+    exit;
+}
+
 // Delete license
 function deleteLicense($db, $key) {
     $stmt = $db->prepare("DELETE FROM licenses WHERE license_key = :key");
@@ -191,7 +269,7 @@ function deleteLicense($db, $key) {
 
 // Reset device binding
 function resetDevice($db, $key) {
-    $stmt = $db->prepare("UPDATE licenses SET device_id = NULL, activated_at = NULL WHERE license_key = :key");
+    $stmt = $db->prepare("UPDATE licenses SET device_id = NULL, activated_at = NULL, last_updated = datetime('now') WHERE license_key = :key");
     $stmt->bindValue(':key', $key, SQLITE3_TEXT);
     $stmt->execute();
     header("Location: licenses.php?success=Device binding reset");
@@ -201,7 +279,7 @@ function resetDevice($db, $key) {
 // Regenerate license key
 function regenerateKey($db, $key) {
     $new_key = generateLicenseKey();
-    $stmt = $db->prepare("UPDATE licenses SET license_key = :new_key WHERE license_key = :old_key");
+    $stmt = $db->prepare("UPDATE licenses SET license_key = :new_key, last_updated = datetime('now') WHERE license_key = :old_key");
     $stmt->bindValue(':new_key', $new_key, SQLITE3_TEXT);
     $stmt->bindValue(':old_key', $key, SQLITE3_TEXT);
     
@@ -214,729 +292,741 @@ function regenerateKey($db, $key) {
     }
 }
 
-// Show login page
-function showLoginPage() {
+// Show admin login page
+function showAdminLoginPage() {
     global $login_error;
     ?>
     <!DOCTYPE html>
     <html>
     <head>
-        <title>MT5 License Manager - Login</title>
+        <title>Admin Login - License Manager</title>
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
+            * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
             body { 
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
                 min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
             }
-            .login-container {
-                background: white;
-                border-radius: 15px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                overflow: hidden;
+            .admin-login-container {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
                 width: 100%;
                 max-width: 400px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             }
-            .login-header {
-                background: #2c3e50;
-                color: white;
-                padding: 30px;
+            .admin-header {
                 text-align: center;
+                margin-bottom: 30px;
             }
-            .login-header h1 {
-                font-size: 24px;
+            .admin-header h1 {
+                color: white;
+                font-size: 2rem;
                 margin-bottom: 10px;
             }
-            .login-header p {
-                color: #ecf0f1;
-                font-size: 14px;
-                opacity: 0.9;
-            }
-            .login-form {
-                padding: 30px;
+            .admin-header p {
+                color: #a0c8e0;
+                font-size: 0.9rem;
             }
             .form-group {
                 margin-bottom: 20px;
             }
             .form-group label {
                 display: block;
+                color: white;
                 margin-bottom: 8px;
-                font-weight: 600;
-                color: #2c3e50;
+                font-weight: 500;
             }
             .form-group input {
                 width: 100%;
                 padding: 12px 15px;
-                border: 2px solid #ddd;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 border-radius: 8px;
+                color: white;
                 font-size: 16px;
-                transition: border-color 0.3s;
             }
             .form-group input:focus {
-                border-color: #3498db;
                 outline: none;
+                border-color: #4dabf7;
             }
-            .btn-login {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            .admin-btn {
+                width: 100%;
+                padding: 14px;
+                background: linear-gradient(135deg, #4dabf7 0%, #2196f3 100%);
                 color: white;
                 border: none;
-                padding: 15px;
                 border-radius: 8px;
                 font-size: 16px;
                 font-weight: 600;
                 cursor: pointer;
-                width: 100%;
-                transition: transform 0.3s;
+                transition: all 0.3s;
             }
-            .btn-login:hover {
+            .admin-btn:hover {
                 transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(77, 171, 247, 0.4);
             }
             .error-message {
-                background: #f8d7da;
-                color: #721c24;
+                background: rgba(231, 76, 60, 0.2);
+                color: #ff6b6b;
                 padding: 12px;
                 border-radius: 8px;
                 margin-bottom: 20px;
                 text-align: center;
                 border-left: 4px solid #e74c3c;
             }
-            .login-footer {
-                text-align: center;
-                margin-top: 20px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-                color: #7f8c8d;
-                font-size: 14px;
-            }
-            .logo {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .logo img {
-                width: 80px;
-                height: 80px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 50%;
-                padding: 15px;
-                margin-bottom: 10px;
-            }
             .back-link {
-                display: block;
                 text-align: center;
                 margin-top: 20px;
-                color: #3498db;
+            }
+            .back-link a {
+                color: #4dabf7;
                 text-decoration: none;
             }
-            .back-link:hover {
+            .back-link a:hover {
                 text-decoration: underline;
             }
         </style>
     </head>
     <body>
-        <div class="login-container">
-            <div class="login-header">
-                <div class="logo">
-                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
-                        <span style="color: white; font-size: 32px;">🔒</span>
-                    </div>
-                </div>
-                <h1>MT5 License Manager</h1>
-                <p>Admin Panel Login</p>
+        <div class="admin-login-container">
+            <div class="admin-header">
+                <h1>🔒 Admin Panel</h1>
+                <p>License Management System</p>
             </div>
             
-            <div class="login-form">
-                <?php if (isset($login_error)): ?>
-                    <div class="error-message">❌ <?php echo $login_error; ?></div>
-                <?php endif; ?>
-                
-                <form method="POST" action="">
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username" name="username" placeholder="Enter admin username" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                    </div>
-                    
-                    <button type="submit" name="login" class="btn-login">Login to Dashboard</button>
-                </form>
-                
-                <div class="login-footer">
-                    <p>Default credentials: <code>admin / admin123</code></p>
-                    <p style="font-size: 12px; margin-top: 10px; color: #e74c3c;">⚠️ Change the password in licenses.php file!</p>
+            <?php if (isset($login_error)): ?>
+                <div class="error-message">❌ <?php echo $login_error; ?></div>
+            <?php endif; ?>
+            
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label for="username">Admin Username:</label>
+                    <input type="text" id="username" name="username" placeholder="Enter admin username" required>
                 </div>
                 
-                <a href="index.php" class="back-link">← Back to Download Center</a>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="Enter admin password" required>
+                </div>
+                
+                <button type="submit" name="admin_login" class="admin-btn">Login as Admin</button>
+            </form>
+            
+            <div class="back-link">
+                <a href="index.php">← Back to Main Site</a>
             </div>
         </div>
-        
-        <script>
-            // Add focus effect to inputs
-            document.querySelectorAll('input').forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'translateY(-2px)';
-                });
-                input.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'translateY(0)';
-                });
-            });
-        </script>
     </body>
     </html>
     <?php
 }
 
-// Show admin panel (only if logged in)
+// Show admin panel
 function showAdminPanel($db) {
     ?>
     <!DOCTYPE html>
     <html>
     <head>
-        <title>MT5 License Manager - Admin Panel</title>
+        <title>License Manager - Admin Panel</title>
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-            .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-            
-            /* Header Styles */
-            .header { 
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+                background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+                color: #e0e0e0;
+                min-height: 100vh;
+            }
+
+            .admin-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            /* Admin Header */
+            .admin-header {
                 background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
-                color: white; 
-                padding: 20px; 
-                border-radius: 10px; 
-                margin-bottom: 20px;
+                color: white;
+                padding: 25px;
+                border-radius: 15px;
+                margin-bottom: 30px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             }
-            .header-left h1 { margin-bottom: 5px; font-size: 24px; }
-            .header-left p { color: #ecf0f1; opacity: 0.9; font-size: 14px; }
-            .user-info { 
-                background: rgba(255,255,255,0.1); 
-                padding: 10px 20px; 
+
+            .admin-header-left h1 {
+                font-size: 2.2rem;
+                margin-bottom: 5px;
+            }
+
+            .admin-header-left p {
+                color: #ecf0f1;
+                opacity: 0.9;
+                font-size: 14px;
+            }
+
+            .admin-user-info {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .admin-actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 10px 20px;
                 border-radius: 8px;
+                border: none;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-primary {
+                background: linear-gradient(135deg, #4dabf7 0%, #2196f3 100%);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(77, 171, 247, 0.4);
+            }
+
+            .btn-danger {
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+                color: white;
+            }
+
+            .btn-danger:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+            }
+
+            .btn-success {
+                background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+                color: white;
+            }
+
+            .btn-success:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+            }
+
+            .btn-warning {
+                background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+                color: white;
+            }
+
+            .btn-warning:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
+            }
+
+            .btn-secondary {
+                background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+                color: white;
+            }
+
+            /* Messages */
+            .message {
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                animation: slideIn 0.3s ease;
+            }
+
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .message.success {
+                background: rgba(39, 174, 96, 0.2);
+                color: #27ae60;
+                border-left: 4px solid #27ae60;
+            }
+
+            .message.error {
+                background: rgba(231, 76, 60, 0.2);
+                color: #e74c3c;
+                border-left: 4px solid #e74c3c;
+            }
+
+            /* Admin Content */
+            .admin-content {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            /* License Creation Form */
+            .creation-form {
+                background: rgba(25, 40, 50, 0.85);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+
+            .creation-form h2 {
+                font-size: 1.8rem;
+                color: #fff;
+                margin-bottom: 25px;
                 display: flex;
                 align-items: center;
                 gap: 10px;
             }
-            .user-info span { font-weight: 600; }
-            .btn-logout { 
-                background: #e74c3c; 
-                color: white; 
-                border: none; 
-                padding: 8px 16px; 
-                border-radius: 6px; 
-                cursor: pointer;
-                font-size: 14px;
-                transition: background 0.3s;
+
+            .form-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 25px;
             }
-            .btn-logout:hover { background: #c0392b; }
-            .back-home {
-                background: #3498db;
-                color: white;
-                padding: 8px 16px;
-                border-radius: 6px;
-                text-decoration: none;
-                font-size: 14px;
-                margin-right: 10px;
-            }
-            .back-home:hover {
-                background: #2980b9;
-            }
-            
-            /* Stats Styles */
-            .stats { 
-                display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-                gap: 20px; 
-                margin: 20px 0; 
-            }
-            .stat-box { 
-                background: white; 
-                padding: 20px; 
-                border-radius: 10px; 
-                text-align: center;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-                border-top: 4px solid #3498db;
-            }
-            .stat-box:nth-child(2) { border-top-color: #2ecc71; }
-            .stat-box:nth-child(3) { border-top-color: #f39c12; }
-            .stat-number { 
-                font-size: 32px; 
-                font-weight: bold; 
-                color: #2c3e50; 
-                margin: 10px 0; 
-            }
-            .stat-label { 
-                font-size: 14px; 
-                color: #7f8c8d; 
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            }
-            
-            /* Tab Styles */
-            .tabs { 
-                background: white; 
-                border-radius: 10px; 
-                padding: 5px;
-                margin: 20px 0;
-                display: flex;
-                flex-wrap: wrap;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            }
-            .tab { 
-                padding: 15px 30px; 
-                background: transparent; 
-                color: #7f8c8d; 
-                margin-right: 5px; 
-                cursor: pointer; 
-                border-radius: 8px;
-                font-weight: 600;
-                transition: all 0.3s;
-                border: none;
-                font-size: 16px;
-            }
-            .tab.active { 
-                background: #3498db; 
-                color: white; 
-                box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-            }
-            .tab:hover:not(.active) { 
-                background: #f8f9fa; 
-                color: #3498db; 
-            }
-            
-            /* Tab Content Styles */
-            .tab-content { 
-                display: none; 
-                padding: 30px; 
-                background: white; 
-                border-radius: 10px; 
-                margin-top: 10px;
-                box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-            }
-            .tab-content.active { display: block; }
-            
-            /* Form Styles */
-            input, select { 
-                width: 100%; 
-                padding: 12px 15px; 
-                margin: 8px 0; 
-                border: 2px solid #e0e0e0; 
-                border-radius: 8px; 
-                font-size: 16px;
-                transition: border-color 0.3s;
-            }
-            input:focus, select:focus { 
-                border-color: #3498db; 
-                outline: none;
-                box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-            }
-            
-            /* Button Styles */
-            button { 
-                background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); 
-                color: white; 
-                border: none; 
-                padding: 12px 24px; 
-                border-radius: 8px; 
-                cursor: pointer; 
-                font-size: 16px;
-                font-weight: 600;
-                transition: all 0.3s;
-            }
-            button:hover { 
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3);
-            }
-            .btn-danger { 
-                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
-            }
-            .btn-danger:hover { 
-                box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
-            }
-            .btn-warning { 
-                background: linear-gradient(135deg, #f39c12 0%, #d35400 100%); 
-            }
-            .btn-warning:hover { 
-                box-shadow: 0 6px 20px rgba(243, 156, 18, 0.3);
-            }
-            .btn-secondary { 
-                background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); 
-            }
-            .btn-secondary:hover { 
-                box-shadow: 0 6px 20px rgba(149, 165, 166, 0.3);
-            }
-            .btn-small { padding: 6px 12px; font-size: 14px; }
-            
-            /* Table Styles */
-            table { 
-                width: 100%; 
-                border-collapse: separate; 
-                border-spacing: 0;
-                margin-top: 20px;
-                border-radius: 10px;
-                overflow: hidden;
-                box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-            }
-            th, td { 
-                padding: 15px; 
-                text-align: left; 
-                border-bottom: 1px solid #eee; 
-            }
-            th { 
-                background: #f8f9fa; 
-                font-weight: 600; 
-                color: #2c3e50;
-                text-transform: uppercase;
-                font-size: 14px;
-                letter-spacing: 0.5px;
-            }
-            tr:hover { background: #f8f9fa; }
-            tr:last-child td { border-bottom: none; }
-            
-            /* Status Colors */
-            .status-active { color: #27ae60; font-weight: 600; }
-            .status-expired { color: #e74c3c; font-weight: 600; }
-            .status-available { color: #3498db; font-weight: 600; }
-            
-            /* Message Styles */
-            .success { 
-                background: #d4edda; 
-                color: #155724; 
-                padding: 15px; 
-                border-radius: 8px; 
-                margin: 15px 0; 
-                border-left: 4px solid #27ae60;
-            }
-            .error { 
-                background: #f8d7da; 
-                color: #721c24; 
-                padding: 15px; 
-                border-radius: 8px; 
-                margin: 15px 0;
-                border-left: 4px solid #e74c3c;
-            }
-            
-            /* License Key Styles */
-            .license-key { 
-                font-family: 'Courier New', monospace; 
-                background: #f8f9fa; 
-                padding: 12px; 
-                border-radius: 6px; 
-                margin: 10px 0;
-                border: 1px dashed #ddd;
-                font-weight: 600;
-                letter-spacing: 1px;
-            }
-            
-            /* Form Layout */
-            .form-inline { 
-                display: flex; 
-                gap: 15px; 
-                align-items: flex-end; 
+
+            .form-group {
                 margin-bottom: 20px;
             }
-            .form-group { flex: 1; }
-            .edit-form { 
-                background: #f8f9fa; 
-                padding: 25px; 
-                border-radius: 10px; 
-                margin: 20px 0; 
-                border-left: 5px solid #3498db;
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                color: #a0c8e0;
+                font-weight: 500;
             }
-            
-            /* Actions */
-            .actions { display: flex; gap: 8px; }
-            
-            /* API Info */
-            .api-info { 
-                background: linear-gradient(135deg, #f8f9fa 0%, #e8f4f8 100%); 
-                padding: 25px; 
-                border-radius: 10px; 
-                margin: 25px 0; 
-                border-left: 5px solid #3498db;
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                width: 100%;
+                padding: 12px 15px;
+                background: rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                color: white;
+                font-size: 16px;
             }
-            .api-info h3 { margin-bottom: 15px; color: #2c3e50; }
-            .api-info code { 
-                background: rgba(0,0,0,0.05); 
-                padding: 3px 6px; 
-                border-radius: 4px; 
-                font-family: monospace; 
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #4dabf7;
             }
-            
+
+            .form-group textarea {
+                resize: vertical;
+                min-height: 80px;
+            }
+
+            /* License Table */
+            .license-table-container {
+                background: rgba(25, 40, 50, 0.85);
+                border-radius: 15px;
+                padding: 30px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+                overflow-x: auto;
+            }
+
+            .license-table-container h2 {
+                font-size: 1.8rem;
+                color: #fff;
+                margin-bottom: 25px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+
+            th {
+                background: rgba(0, 0, 0, 0.3);
+                color: #a0c8e0;
+                font-weight: 600;
+                text-align: left;
+                padding: 15px;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            }
+
+            td {
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            tr:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .license-key-cell {
+                font-family: 'Courier New', monospace;
+                font-weight: bold;
+                color: #4dabf7;
+            }
+
+            .user-email-cell {
+                color: #4bb543;
+                font-weight: 500;
+            }
+
+            .status-badge {
+                display: inline-block;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 600;
+            }
+
+            .status-active {
+                background: rgba(39, 174, 96, 0.2);
+                color: #27ae60;
+            }
+
+            .status-expired {
+                background: rgba(231, 76, 60, 0.2);
+                color: #e74c3c;
+            }
+
+            .status-available {
+                background: rgba(52, 152, 219, 0.2);
+                color: #3498db;
+            }
+
+            .actions-cell {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .btn-small {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+
+            /* Quick Stats */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+
+            .stat-card {
+                background: rgba(25, 40, 50, 0.85);
+                border-radius: 10px;
+                padding: 25px;
+                text-align: center;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+                font-weight: bold;
+                color: #4dabf7;
+                margin: 10px 0;
+            }
+
+            .stat-label {
+                color: #a0c8e0;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            /* Assign License Form */
+            .assign-form {
+                background: rgba(25, 40, 50, 0.85);
+                border-radius: 15px;
+                padding: 25px;
+                margin-top: 20px;
+                border-left: 4px solid #4bb543;
+            }
+
+            .assign-form h3 {
+                color: #fff;
+                margin-bottom: 15px;
+                font-size: 1.2rem;
+            }
+
+            .assign-form .form-grid {
+                margin-bottom: 15px;
+            }
+
             /* Responsive */
             @media (max-width: 768px) {
-                .container { padding: 10px; }
-                .header { flex-direction: column; text-align: center; gap: 15px; }
-                .user-info { width: 100%; justify-content: center; }
-                .stats { grid-template-columns: 1fr; }
-                .tabs { flex-direction: column; }
-                .tab { margin-right: 0; margin-bottom: 5px; }
-                .form-inline { flex-direction: column; }
-                .actions { flex-wrap: wrap; }
-                table { display: block; overflow-x: auto; }
+                .admin-header {
+                    flex-direction: column;
+                    gap: 15px;
+                    text-align: center;
+                }
+
+                .admin-user-info {
+                    flex-direction: column;
+                }
+
+                .admin-actions {
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+
+                .form-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                table {
+                    display: block;
+                    overflow-x: auto;
+                }
+
+                .actions-cell {
+                    flex-direction: column;
+                }
             }
         </style>
     </head>
     <body>
-        <div class="container">
-            <!-- Header -->
-            <div class="header">
-                <div class="header-left">
-                    <h1>MT5 License Manager Dashboard</h1>
-                    <p>Manage your Expert Advisor licenses securely</p>
+        <div class="admin-container">
+            <!-- Admin Header -->
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <h1>📋 License Manager - Admin Panel</h1>
+                    <p>Manage licenses and assign them to users</p>
                 </div>
-                <div class="user-info">
-                    <a href="index.php" class="back-home">← Back to Downloads</a>
-                    <span>👤 <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-                    <a href="licenses.php?logout" class="btn-logout">Logout</a>
+                <div class="admin-user-info">
+                    <div class="admin-actions">
+                        <a href="index.php" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> Main Site
+                        </a>
+                        <a href="licenses.php?logout" class="btn btn-danger">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Success/Error Messages -->
+            </header>
+
+            <!-- Messages -->
             <?php if (isset($_GET['success'])): ?>
-                <div class="success">✅ <?php echo htmlspecialchars($_GET['success']); ?></div>
+                <div class="message success">
+                    <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($_GET['success']); ?>
+                </div>
             <?php endif; ?>
+
             <?php if (isset($_GET['error'])): ?>
-                <div class="error">❌ <?php echo htmlspecialchars($_GET['error']); ?></div>
+                <div class="message error">
+                    <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($_GET['error']); ?>
+                </div>
             <?php endif; ?>
-            
-            <!-- Statistics -->
-            <div class="stats">
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
                 <?php
                 $total = $db->querySingle("SELECT COUNT(*) FROM licenses");
-                $active = $db->querySingle("SELECT COUNT(*) FROM licenses WHERE status = 'active' AND device_id IS NOT NULL");
-                $available = $db->querySingle("SELECT COUNT(*) FROM licenses WHERE status = 'active' AND device_id IS NULL");
+                $active = $db->querySingle("SELECT COUNT(*) FROM licenses WHERE status = 'active'");
+                $assigned = $db->querySingle("SELECT COUNT(*) FROM licenses WHERE user_email IS NOT NULL AND user_email != ''");
+                $available = $db->querySingle("SELECT COUNT(*) FROM licenses WHERE user_email IS NULL OR user_email = ''");
                 ?>
-                <div class="stat-box">
+                <div class="stat-card">
                     <div class="stat-number"><?php echo $total; ?></div>
                     <div class="stat-label">Total Licenses</div>
                 </div>
-                <div class="stat-box">
+                <div class="stat-card">
                     <div class="stat-number"><?php echo $active; ?></div>
-                    <div class="stat-label">Active Devices</div>
+                    <div class="stat-label">Active Licenses</div>
                 </div>
-                <div class="stat-box">
+                <div class="stat-card">
+                    <div class="stat-number"><?php echo $assigned; ?></div>
+                    <div class="stat-label">Assigned to Users</div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-number"><?php echo $available; ?></div>
                     <div class="stat-label">Available Licenses</div>
                 </div>
             </div>
-            
-            <!-- API Information -->
-            <div class="api-info">
-                <h3>🔌 API Endpoint for MT5 EA:</h3>
-                <p><strong>URL:</strong> <code><?php echo 'https://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/login.php'; ?></code></p>
-                <p><strong>Method:</strong> POST</p>
-                <p><strong>Parameters:</strong> <code>action=check_license&key=LICENSE_KEY&device_id=DEVICE_ID</code></p>
-                <p><strong>Responses:</strong> VALID, DEVICE_LIMIT_EXCEEDED, INVALID, EXPIRED</p>
-            </div>
-            
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('create')">➕ Create License</button>
-                <button class="tab" onclick="showTab('view')">👁️ View/Edit Licenses</button>
-            </div>
-            
-            <!-- Create License Tab -->
-            <div id="create" class="tab-content active">
-                <h2>Create New License Key</h2>
-                <form method="POST" action="licenses.php?action=create">
-                    <div class="form-inline">
-                        <div class="form-group">
-                            <label>License Key:</label>
-                            <input type="text" name="license_key" id="license_key" placeholder="Leave empty for random" pattern="[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}">
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn-secondary" onclick="generateRandomKey()">🎲 Generate Random Key</button>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Customer Type:</label>
-                        <select name="customer_type" required>
-                            <option value="User">User</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Trial">Trial (7 days)</option>
-                            <option value="VIP">VIP User</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>License Duration:</label>
-                        <select name="duration">
-                            <option value="7">7 days (Trial)</option>
-                            <option value="30">30 days</option>
-                            <option value="90">90 days</option>
-                            <option value="180">180 days</option>
-                            <option value="365" selected>1 year</option>
-                            <option value="730">2 years</option>
-                            <option value="9999">Lifetime</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn">✅ Create License</button>
-                </form>
-            </div>
-            
-            <!-- View/Edit Licenses Tab -->
-            <div id="view" class="tab-content">
-                <h2>Current Licenses</h2>
-                
-                <?php
-                // Check if editing a specific license
-                $edit_key = $_GET['edit'] ?? '';
-                if ($edit_key) {
-                    $stmt = $db->prepare("SELECT * FROM licenses WHERE license_key = :key");
-                    $stmt->bindValue(':key', $edit_key, SQLITE3_TEXT);
-                    $license = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-                    
-                    if ($license) {
-                        // Calculate remaining days
-                        $expires_date = new DateTime($license['expires_at']);
-                        $now = new DateTime();
-                        $interval = $now->diff($expires_date);
-                        $days_remaining = $interval->days;
-                        $is_expired = $interval->invert == 1;
-                        ?>
-                        <div class="edit-form">
-                            <h3>✏️ Edit License: <?php echo htmlspecialchars($license['license_key']); ?></h3>
-                            <form method="POST" action="licenses.php?action=edit">
-                                <input type="hidden" name="license_key" value="<?php echo htmlspecialchars($license['license_key']); ?>">
-                                
-                                <div class="form-group">
-                                    <label>New License Key (leave unchanged to keep current):</label>
-                                    <input type="text" name="new_license_key" value="<?php echo htmlspecialchars($license['license_key']); ?>" pattern="[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>Customer Type:</label>
-                                    <select name="customer_type">
-                                        <option value="User" <?php echo $license['customer_type'] == 'User' ? 'selected' : ''; ?>>User</option>
-                                        <option value="Admin" <?php echo $license['customer_type'] == 'Admin' ? 'selected' : ''; ?>>Admin</option>
-                                        <option value="Trial" <?php echo $license['customer_type'] == 'Trial' ? 'selected' : ''; ?>>Trial</option>
-                                        <option value="VIP" <?php echo $license['customer_type'] == 'VIP' ? 'selected' : ''; ?>>VIP</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>Status:</label>
-                                    <select name="status">
-                                        <option value="active" <?php echo $license['status'] == 'active' ? 'selected' : ''; ?>>Active</option>
-                                        <option value="expired" <?php echo $license['status'] == 'expired' ? 'selected' : ''; ?>>Expired</option>
-                                        <option value="revoked" <?php echo $license['status'] == 'revoked' ? 'selected' : ''; ?>>Revoked</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>Extend License by:</label>
-                                    <select name="duration">
-                                        <option value="7">7 days</option>
-                                        <option value="30">30 days</option>
-                                        <option value="90">90 days</option>
-                                        <option value="180">180 days</option>
-                                        <option value="365" selected>1 year</option>
-                                        <option value="730">2 years</option>
-                                    </select>
-                                    <small style="display: block; margin-top: 5px; color: #7f8c8d;">
-                                        Current expiration: <?php echo date('Y-m-d H:i', strtotime($license['expires_at'])); ?> 
-                                        (<?php echo $is_expired ? "Expired " : ""; ?><?php echo $days_remaining; ?> days <?php echo $is_expired ? "ago" : "remaining"; ?>)
-                                    </small>
-                                </div>
-                                
-                                <div class="actions">
-                                    <button type="submit" class="btn">💾 Save Changes</button>
-                                    <a href="licenses.php" class="btn-secondary">❌ Cancel</a>
-                                </div>
-                            </form>
-                        </div>
-                        <?php
-                    }
-                }
-                ?>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>License Key</th>
-                            <th>Customer Type</th>
-                            <th>Device ID</th>
-                            <th>Created</th>
-                            <th>Expires</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $result = $db->query("SELECT * FROM licenses ORDER BY created_at DESC");
-                        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-                            // Calculate days remaining
-                            $expires_date = new DateTime($row['expires_at']);
-                            $now = new DateTime();
-                            $interval = $now->diff($expires_date);
-                            $days_remaining = $interval->days;
-                            $is_expired = $interval->invert == 1;
+
+            <!-- Admin Content -->
+            <div class="admin-content">
+                <!-- License Creation Form -->
+                <div class="creation-form">
+                    <h2><i class="fas fa-plus-circle"></i> Create New License</h2>
+                    <form method="POST" action="licenses.php?action=create">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="license_key">License Key:</label>
+                                <input type="text" id="license_key" name="license_key" placeholder="Leave empty for random" pattern="[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}">
+                                <button type="button" class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="generateRandomKey()">
+                                    <i class="fas fa-random"></i> Generate Random Key
+                                </button>
+                            </div>
                             
-                            // Determine status
-                            if ($row['status'] == 'active') {
-                                if (empty($row['device_id'])) {
-                                    $status_text = '<span class="status-available">Available</span>';
+                            <div class="form-group">
+                                <label for="user_email">Assign to User Email:</label>
+                                <input type="email" id="user_email" name="user_email" placeholder="user@example.com">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="customer_info">Customer Info (Optional):</label>
+                                <input type="text" id="customer_info" name="customer_info" placeholder="Customer name or notes">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="customer_type">Customer Type:</label>
+                                <select name="customer_type" required>
+                                    <option value="User">User</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Trial">Trial</option>
+                                    <option value="VIP">VIP</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="duration">License Duration:</label>
+                                <select name="duration">
+                                    <option value="7">7 days (Trial)</option>
+                                    <option value="30">30 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="180">180 days</option>
+                                    <option value="365" selected>1 year</option>
+                                    <option value="730">2 years</option>
+                                    <option value="9999">Lifetime</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success" style="width: 100%;">
+                            <i class="fas fa-plus"></i> Create License
+                        </button>
+                    </form>
+                </div>
+
+                <!-- License Management Table -->
+                <div class="license-table-container">
+                    <h2><i class="fas fa-list"></i> All Licenses</h2>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>License Key</th>
+                                <th>User Email</th>
+                                <th>Customer Info</th>
+                                <th>Type</th>
+                                <th>Expires</th>
+                                <th>Device</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $result = $db->query("SELECT * FROM licenses ORDER BY created_at DESC");
+                            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                                // Determine status badge
+                                $status_class = 'status-available';
+                                $status_text = 'Available';
+                                
+                                if ($row['status'] == 'active') {
+                                    if (!empty($row['user_email'])) {
+                                        $status_class = 'status-active';
+                                        $status_text = 'Active';
+                                    }
                                 } else {
-                                    $status_text = '<span class="status-active">Active</span>';
+                                    $status_class = 'status-expired';
+                                    $status_text = ucfirst($row['status']);
                                 }
-                            } else {
-                                $status_text = '<span class="status-expired">' . ucfirst($row['status']) . '</span>';
+                                
+                                // Calculate days remaining
+                                $expires_date = new DateTime($row['expires_at']);
+                                $now = new DateTime();
+                                $interval = $now->diff($expires_date);
+                                $days_remaining = $interval->days;
+                                $is_expired = $interval->invert == 1;
+                                
+                                echo "<tr>";
+                                echo "<td class='license-key-cell'>" . htmlspecialchars($row['license_key']) . "</td>";
+                                echo "<td class='user-email-cell'>" . (!empty($row['user_email']) ? htmlspecialchars($row['user_email']) : '<span style=\"color: #95a5a6;\">Not assigned</span>') . "</td>";
+                                echo "<td>" . htmlspecialchars($row['customer_info']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['customer_type']) . "</td>";
+                                echo "<td>" . date('Y-m-d', strtotime($row['expires_at'])) . "<br><small>(" . ($is_expired ? "Expired " : "") . $days_remaining . " days " . ($is_expired ? "ago" : "left") . ")</small></td>";
+                                echo "<td>" . (!empty($row['device_id']) ? '<span style=\"color: #4bb543;\">✓ Activated</span>' : '<span style=\"color: #95a5a6;\">Not activated</span>') . "</td>";
+                                echo "<td><span class='status-badge $status_class'>$status_text</span></td>";
+                                echo "<td class='actions-cell'>";
+                                echo "<a href='licenses.php?edit=" . urlencode($row['license_key']) . "' class='btn btn-primary btn-small'><i class='fas fa-edit'></i> Edit</a>";
+                                
+                                if (empty($row['user_email'])) {
+                                    echo "<a href='#' onclick='showAssignForm(\"" . htmlspecialchars($row['license_key']) . "\")' class='btn btn-success btn-small'><i class='fas fa-user-plus'></i> Assign</a>";
+                                } else {
+                                    echo "<a href='licenses.php?action=unassign&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Unassign license from user?\")' class='btn btn-warning btn-small'><i class='fas fa-user-minus'></i> Unassign</a>";
+                                }
+                                
+                                if (!empty($row['device_id'])) {
+                                    echo "<a href='licenses.php?action=reset&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Reset device binding?\")' class='btn btn-warning btn-small'><i class='fas fa-sync'></i> Reset Device</a>";
+                                }
+                                
+                                echo "<a href='licenses.php?action=regenerate&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Generate new key? Old key will be invalid!\")' class='btn btn-warning btn-small'><i class='fas fa-redo'></i> New Key</a>";
+                                echo "<a href='licenses.php?action=delete&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Delete this license permanently?\")' class='btn btn-danger btn-small'><i class='fas fa-trash'></i> Delete</a>";
+                                echo "</td>";
+                                echo "</tr>";
                             }
-                            
-                            echo "<tr>";
-                            echo "<td><div class='license-key'>" . htmlspecialchars($row['license_key']) . "</div></td>";
-                            echo "<td>" . htmlspecialchars($row['customer_type']) . "</td>";
-                            echo "<td><small>" . (empty($row['device_id']) ? 'Not activated' : substr($row['device_id'], 0, 12) . '...') . "</small></td>";
-                            echo "<td>" . date('Y-m-d', strtotime($row['created_at'])) . "</td>";
-                            echo "<td>" . date('Y-m-d', strtotime($row['expires_at'])) . 
-                                 "<br><small>(" . ($is_expired ? "Expired " : "") . $days_remaining . " days " . ($is_expired ? "ago" : "left") . ")</small></td>";
-                            echo "<td>" . $status_text . "</td>";
-                            echo "<td class='actions'>";
-                            echo "<a href='licenses.php?edit=" . urlencode($row['license_key']) . "' class='btn btn-small'>✏️ Edit</a>";
-                            if (!empty($row['device_id'])) {
-                                echo "<a href='licenses.php?action=reset&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Reset device binding? This will allow activation on another device.\")' class='btn-warning btn-small'>🔄 Reset</a>";
-                            }
-                            echo "<a href='licenses.php?action=regenerate&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Generate new key? Old key will become invalid!\")' class='btn-warning btn-small'>🔄 New Key</a>";
-                            echo "<a href='licenses.php?action=delete&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Delete this license permanently?\")' class='btn-danger btn-small'>🗑️ Delete</a>";
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        
+
+        <!-- Assign License Form (Hidden by default) -->
+        <div id="assignFormModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+            <div style="background: rgba(25, 40, 50, 0.95); padding: 30px; border-radius: 15px; width: 90%; max-width: 500px;">
+                <h3 style="color: white; margin-bottom: 20px;"><i class="fas fa-user-plus"></i> Assign License to User</h3>
+                <form method="POST" action="licenses.php?action=assign" id="assignLicenseForm">
+                    <input type="hidden" name="license_key" id="assignLicenseKey">
+                    
+                    <div class="form-group">
+                        <label for="assign_email">User Email:</label>
+                        <input type="email" id="assign_email" name="assign_email" placeholder="user@example.com" required style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px;">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" class="btn btn-success" style="flex: 1;">
+                            <i class="fas fa-check"></i> Assign License
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="hideAssignForm()" style="flex: 1;">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <script>
-            function showTab(tabId) {
-                // Hide all tabs
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                // Show selected tab
-                document.getElementById(tabId).classList.add('active');
-                
-                // Update tab buttons
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                event.target.classList.add('active');
-            }
-            
+            // Generate random license key
             function generateRandomKey() {
                 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                 let key = '';
@@ -948,24 +1038,34 @@ function showAdminPanel($db) {
                 }
                 document.getElementById('license_key').value = key;
             }
-            
-            // Generate random key on page load if field is empty
-            window.onload = function() {
-                const keyField = document.getElementById('license_key');
-                if (keyField && keyField.value === '') {
-                    generateRandomKey();
+
+            // Show assign license form
+            function showAssignForm(licenseKey) {
+                document.getElementById('assignLicenseKey').value = licenseKey;
+                document.getElementById('assignFormModal').style.display = 'flex';
+            }
+
+            // Hide assign license form
+            function hideAssignForm() {
+                document.getElementById('assignFormModal').style.display = 'none';
+            }
+
+            // Auto-hide messages after 5 seconds
+            setTimeout(() => {
+                const messages = document.querySelectorAll('.message');
+                messages.forEach(msg => {
+                    msg.style.transition = 'opacity 0.5s';
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 500);
+                });
+            }, 5000);
+
+            // Close modal when clicking outside
+            document.getElementById('assignFormModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('assignFormModal')) {
+                    hideAssignForm();
                 }
-                
-                // Auto-hide messages after 5 seconds
-                setTimeout(() => {
-                    const messages = document.querySelectorAll('.success, .error');
-                    messages.forEach(msg => {
-                        msg.style.transition = 'opacity 0.5s';
-                        msg.style.opacity = '0';
-                        setTimeout(() => msg.remove(), 500);
-                    });
-                }, 5000);
-            };
+            });
         </script>
     </body>
     </html>
@@ -973,7 +1073,7 @@ function showAdminPanel($db) {
 }
 
 // Display the admin panel if logged in
-if (isLoggedIn()) {
+if (isAdminLoggedIn()) {
     showAdminPanel($db);
     $db->close();
 }
