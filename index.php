@@ -8,9 +8,9 @@ $download_links = [
 
 // File sizes (optional, for display)
 $file_sizes = [
-    'trading_vps' => '45 MB',
-    'trading_robot' => '28 MB',
-    'btrader_tools' => '62 MB'
+    'trading_vps' => '0 MB',
+    'trading_robot' => '62 MB',
+    'Setting_tools' => '28 MB'
 ];
 ?>
 
