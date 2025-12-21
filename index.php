@@ -876,12 +876,12 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                         <i class="fas fa-key"></i>
                     </div>
                     <h2 class="license-title">Your MT5 EA License Key</h2>
-                    <a href="https://t.me/ZEAHONGMOD">Get License</a>
+                    
                 </div>
                 
                 <div class="license-key-box">
                     <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
-                    
+                    <a href="https://t.me/ZEAHONGMOD">Get License</a>
                     <div class="license-key-display" id="licenseKeyDisplay">
                         <i class="fas fa-spinner fa-spin"></i> Loading license key...
                     </div>
