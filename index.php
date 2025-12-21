@@ -359,7 +359,7 @@ $file_sizes = [
         </div>
         
         <footer>
-            <p>Need help with installation? Contact support@example.com</p>
+            
             <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
             
             <div class="footer-links">
