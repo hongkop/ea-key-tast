@@ -1,11 +1,11 @@
 <?php
-// index.php - Web interface for managing licenses with login protection
+// licenses.php - Web interface for managing licenses with login protection
 session_start();
 
 // Enable SQLite database
 define('DB_FILE', 'licenses.db');
-define('ADMIN_USERNAME', '11112222');
-define('ADMIN_PASSWORD', '11112222'); // Change this to a strong password!
+define('ADMIN_USERNAME', '11');
+define('ADMIN_PASSWORD', '11'); // Change this to a strong password!
 
 // Check if user is logged in
 function isLoggedIn() {
@@ -324,6 +324,16 @@ function showLoginPage() {
                 padding: 15px;
                 margin-bottom: 10px;
             }
+            .back-link {
+                display: block;
+                text-align: center;
+                margin-top: 20px;
+                color: #3498db;
+                text-decoration: none;
+            }
+            .back-link:hover {
+                text-decoration: underline;
+            }
         </style>
     </head>
     <body>
@@ -358,9 +368,11 @@ function showLoginPage() {
                 </form>
                 
                 <div class="login-footer">
-                    
-                    <p style="font-size: 12px; margin-top: 10px; color: #e74c3c;">⚠️ Telegram : ZEAHONGMOD </p>
+                    <p>Default credentials: <code>admin / admin123</code></p>
+                    <p style="font-size: 12px; margin-top: 10px; color: #e74c3c;">⚠️ Change the password in licenses.php file!</p>
                 </div>
+                
+                <a href="index.php" class="back-link">← Back to Download Center</a>
             </div>
         </div>
         
@@ -426,6 +438,18 @@ function showAdminPanel($db) {
                 transition: background 0.3s;
             }
             .btn-logout:hover { background: #c0392b; }
+            .back-home {
+                background: #3498db;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 6px;
+                text-decoration: none;
+                font-size: 14px;
+                margin-right: 10px;
+            }
+            .back-home:hover {
+                background: #2980b9;
+            }
             
             /* Stats Styles */
             .stats { 
@@ -671,8 +695,9 @@ function showAdminPanel($db) {
                     <p>Manage your Expert Advisor licenses securely</p>
                 </div>
                 <div class="user-info">
+                    <a href="index.php" class="back-home">← Back to Downloads</a>
                     <span>👤 <?php echo htmlspecialchars($_SESSION['username']); ?></span>
-                    <a href="?logout" class="btn-logout">Logout</a>
+                    <a href="licenses.php?logout" class="btn-logout">Logout</a>
                 </div>
             </div>
             
@@ -783,7 +808,7 @@ function showAdminPanel($db) {
                         ?>
                         <div class="edit-form">
                             <h3>✏️ Edit License: <?php echo htmlspecialchars($license['license_key']); ?></h3>
-                            <form method="POST" action="index.php?action=edit">
+                            <form method="POST" action="licenses.php?action=edit">
                                 <input type="hidden" name="license_key" value="<?php echo htmlspecialchars($license['license_key']); ?>">
                                 
                                 <div class="form-group">
