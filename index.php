@@ -290,7 +290,7 @@ $file_sizes = [
                 </div>
                 
                 <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download>
-                    <i class="fas fa-download"></i> Download VPS Setup
+                    <i class="fas fa-download"></i> Download indicator
                 </a>
                 <p class="instructions">Includes setup guide and configuration files</p>
             </div>
@@ -321,7 +321,7 @@ $file_sizes = [
                 </div>
                 
                 <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download>
-                    <i class="fas fa-download"></i> Download EA & Settings
+                    <i class="fas fa-download"></i> Download EA
                 </a>
                 <p class="instructions">Extract to your MT5 Experts folder</p>
             </div>
@@ -350,7 +350,7 @@ $file_sizes = [
                 <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download>
                     <i class="fas fa-download"></i> Download Toolkit
                 </a>
-                <p class="instructions">Full trading toolkit with installation guide</p>
+                <p class="instructions">Setting Ea on MT5 </p>
             </div>
         </div>
         
