@@ -30,7 +30,7 @@ if (isset($_POST['login'])) {
 // Handle logout
 if (isset($_GET['logout'])) {
     session_destroy();
-    header("Location: index.php");
+    header("Location: licenses.php");
     exit;
 }
 
@@ -116,7 +116,7 @@ function createLicense($db) {
     
     // Validate license key format (XXXX-XXXX-XXXX-XXXX)
     if (!preg_match('/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/', $license_key)) {
-        header("Location: index.php?error=Invalid license key format. Use format: XXXX-XXXX-XXXX-XXXX");
+        header("Location: licenses.php?error=Invalid license key format. Use format: XXXX-XXXX-XXXX-XXXX");
         exit;
     }
     
@@ -128,10 +128,10 @@ function createLicense($db) {
     $stmt->bindValue(':expires', $expires, SQLITE3_TEXT);
     
     if ($stmt->execute()) {
-        header("Location: index.php?success=License created: $license_key");
+        header("Location: licenses.php?success=License created: $license_key");
         exit;
     } else {
-        header("Location: index.php?error=License key already exists");
+        header("Location: licenses.php?error=License key already exists");
         exit;
     }
 }
@@ -147,7 +147,7 @@ function editLicense($db) {
     // If new key is provided, validate format
     if ($new_license_key !== $license_key && !empty($new_license_key)) {
         if (!preg_match('/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/', $new_license_key)) {
-            header("Location: index.php?error=Invalid license key format. Use format: XXXX-XXXX-XXXX-XXXX");
+            header("Location: licenses.php?error=Invalid license key format. Use format: XXXX-XXXX-XXXX-XXXX");
             exit;
         }
     }
@@ -172,10 +172,10 @@ function editLicense($db) {
     }
     
     if ($stmt->execute()) {
-        header("Location: index.php?success=License updated successfully");
+        header("Location: licenses.php?success=License updated successfully");
         exit;
     } else {
-        header("Location: index.php?error=Failed to update license");
+        header("Location: licenses.php?error=Failed to update license");
         exit;
     }
 }
@@ -185,7 +185,7 @@ function deleteLicense($db, $key) {
     $stmt = $db->prepare("DELETE FROM licenses WHERE license_key = :key");
     $stmt->bindValue(':key', $key, SQLITE3_TEXT);
     $stmt->execute();
-    header("Location: index.php?success=License deleted");
+    header("Location: licenses.php?success=License deleted");
     exit;
 }
 
@@ -194,7 +194,7 @@ function resetDevice($db, $key) {
     $stmt = $db->prepare("UPDATE licenses SET device_id = NULL, activated_at = NULL WHERE license_key = :key");
     $stmt->bindValue(':key', $key, SQLITE3_TEXT);
     $stmt->execute();
-    header("Location: index.php?success=Device binding reset");
+    header("Location: licenses.php?success=Device binding reset");
     exit;
 }
 
@@ -206,10 +206,10 @@ function regenerateKey($db, $key) {
     $stmt->bindValue(':old_key', $key, SQLITE3_TEXT);
     
     if ($stmt->execute()) {
-        header("Location: index.php?success=License key regenerated: $new_key");
+        header("Location: licenses.php?success=License key regenerated: $new_key");
         exit;
     } else {
-        header("Location: index.php?error=Failed to regenerate key");
+        header("Location: licenses.php?error=Failed to regenerate key");
         exit;
     }
 }
@@ -723,7 +723,7 @@ function showAdminPanel($db) {
             <!-- Create License Tab -->
             <div id="create" class="tab-content active">
                 <h2>Create New License Key</h2>
-                <form method="POST" action="index.php?action=create">
+                <form method="POST" action="licenses.php?action=create">
                     <div class="form-inline">
                         <div class="form-group">
                             <label>License Key:</label>
@@ -828,7 +828,7 @@ function showAdminPanel($db) {
                                 
                                 <div class="actions">
                                     <button type="submit" class="btn">💾 Save Changes</button>
-                                    <a href="index.php" class="btn-secondary">❌ Cancel</a>
+                                    <a href="licenses.php" class="btn-secondary">❌ Cancel</a>
                                 </div>
                             </form>
                         </div>
@@ -880,12 +880,12 @@ function showAdminPanel($db) {
                                  "<br><small>(" . ($is_expired ? "Expired " : "") . $days_remaining . " days " . ($is_expired ? "ago" : "left") . ")</small></td>";
                             echo "<td>" . $status_text . "</td>";
                             echo "<td class='actions'>";
-                            echo "<a href='index.php?edit=" . urlencode($row['license_key']) . "' class='btn btn-small'>✏️ Edit</a>";
+                            echo "<a href='licenses.php?edit=" . urlencode($row['license_key']) . "' class='btn btn-small'>✏️ Edit</a>";
                             if (!empty($row['device_id'])) {
-                                echo "<a href='index.php?action=reset&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Reset device binding? This will allow activation on another device.\")' class='btn-warning btn-small'>🔄 Reset</a>";
+                                echo "<a href='licenses.php?action=reset&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Reset device binding? This will allow activation on another device.\")' class='btn-warning btn-small'>🔄 Reset</a>";
                             }
-                            echo "<a href='index.php?action=regenerate&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Generate new key? Old key will become invalid!\")' class='btn-warning btn-small'>🔄 New Key</a>";
-                            echo "<a href='index.php?action=delete&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Delete this license permanently?\")' class='btn-danger btn-small'>🗑️ Delete</a>";
+                            echo "<a href='licenses.php?action=regenerate&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Generate new key? Old key will become invalid!\")' class='btn-warning btn-small'>🔄 New Key</a>";
+                            echo "<a href='licenses.php?action=delete&key=" . urlencode($row['license_key']) . "' onclick='return confirm(\"Delete this license permanently?\")' class='btn-danger btn-small'>🗑️ Delete</a>";
                             echo "</td>";
                             echo "</tr>";
                         }
