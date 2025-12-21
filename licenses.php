@@ -20,7 +20,7 @@ if (isset($_POST['login'])) {
     if ($username === ADMIN_USERNAME && $password === ADMIN_PASSWORD) {
         $_SESSION['loggedin'] = true;
         $_SESSION['username'] = $username;
-        header("Location: index.php");
+        header("Location: licenses.php");
         exit;
     } else {
         $login_error = "Invalid username or password!";
