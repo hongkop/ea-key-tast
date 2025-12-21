@@ -853,7 +853,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         <header class="dashboard-header">
             <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
             <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
-            
+            <a href="https://t.me/ZEAHONGMOD">Get License</a>
             <div class="user-header-info">
                 <div class="user-welcome">
                     <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
