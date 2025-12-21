@@ -1141,89 +1141,79 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             document.title = 'Zeahong Trading - Login';
         }
 
-        // Update user license information
-        async function updateUserLicenseInfo(userEmail) {
-            try {
-                // Fetch user's license from API
-                const response = await fetch('login.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=get_license&email=${encodeURIComponent(userEmail)}`
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                
-                const data = await response.text();
-                console.log('License API response:', data);
-                
-                if (data.includes('NOT_FOUND') || data.includes('INVALID') || data.trim() === '') {
-                    // No license found
-                    licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c; font-size: 1.2rem;">No license assigned</span>';
-                    licenseStatus.textContent = 'No License';
-                    licenseStatus.className = 'info-value expired';
-                    licenseExpiry.textContent = 'N/A';
-                    deviceStatus.textContent = 'N/A';
-                    copyButton.disabled = true;
-                    copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
-                    copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
-                    
-                    // Show contact admin message
-                    const licenseBox = document.querySelector('.license-key-box');
-                    const existingMsg = licenseBox.querySelector('.no-license-msg');
-                    if (!existingMsg) {
-                        const message = document.createElement('p');
-                        message.className = 'no-license-msg';
-                        message.style.color = '#e74c3c';
-                        message.style.marginTop = '15px';
-                        message.style.textAlign = 'center';
-                        message.style.fontSize = '0.9rem';
-                        message.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Contact admin to get a license key.';
-                        licenseBox.appendChild(message);
-                    }
-                } else {
-                    // Parse license info
-                    const parts = data.split('|');
-                    console.log('License parts:', parts);
-                    
-                    if (parts.length >= 4) {
-                        const licenseKey = parts[0];
-                        const status = parts[1];
-                        const expiry = parts[2];
-                        const device = parts[3];
-                        
-                        // Display license
-                        licenseKeyDisplay.textContent = licenseKey;
-                        licenseStatus.textContent = status;
-                        licenseStatus.className = status === 'active' ? 'info-value active' : 'info-value expired';
-                        licenseExpiry.textContent = expiry;
-                        deviceStatus.textContent = device || 'Not Activated';
-                        
-                        // Enable copy button
-                        copyButton.disabled = false;
-                        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
-                        copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
-                        
-                        // Store for copying
-                        window.userLicenseKey = licenseKey;
-                        
-                        // Remove any existing "no license" message
-                        const noLicenseMsg = document.querySelector('.no-license-msg');
-                        if (noLicenseMsg) {
-                            noLicenseMsg.remove();
-                        }
-                    } else {
-                        throw new Error('Invalid license data format');
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching license info:', error);
-                licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error loading license. Try refreshing.</span>';
-            }
+       // Update user license information
+async function updateUserLicenseInfo(userEmail) {
+    try {
+        console.log('Fetching license for:', userEmail);
+        
+        const formData = new URLSearchParams();
+        formData.append('action', 'get_license');
+        formData.append('email', userEmail);
+        
+        const response = await fetch('login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.text();
+        console.log('License response:', data);
+        
+        if (data === 'NOT_FOUND' || data === 'INVALID' || !data) {
+            // No license found
+            licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+            licenseKeyDisplay.style.fontSize = '1.2rem';
+            licenseStatus.textContent = 'No License';
+            licenseStatus.className = 'info-value expired';
+            licenseExpiry.textContent = 'N/A';
+            deviceStatus.textContent = 'N/A';
+            copyButton.disabled = true;
+            copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+            copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+            
+        } else if (data.includes('|')) {
+            // Parse license info
+            const parts = data.split('|');
+            console.log('Parsed parts:', parts);
+            
+            if (parts.length >= 4) {
+                const licenseKey = parts[0];
+                const status = parts[1];
+                const expiry = parts[2];
+                const device = parts[3];
+                
+                // Display license
+                licenseKeyDisplay.textContent = licenseKey;
+                licenseKeyDisplay.style.color = '#4bb543';
+                licenseKeyDisplay.style.fontSize = '1.8rem';
+                licenseStatus.textContent = status;
+                licenseStatus.className = status === 'active' ? 'info-value active' : 'info-value expired';
+                licenseExpiry.textContent = expiry;
+                deviceStatus.textContent = device || 'Not Activated';
+                
+                // Enable copy button
+                copyButton.disabled = false;
+                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                
+                // Store for copying
+                window.userLicenseKey = licenseKey;
+            }
+        } else {
+            throw new Error('Unexpected response format');
+        }
+        
+    } catch (error) {
+        console.error('Error fetching license info:', error);
+        licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
+    }
+}
 
         // Show/Hide Forms
         window.showSignup = function() {
