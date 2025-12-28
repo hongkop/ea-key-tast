@@ -404,6 +404,126 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
             box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4);
         }
 
+        /* Download disabled styles */
+        .download-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .download-disabled .download-btn {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            cursor: not-allowed;
+        }
+
+        .download-disabled .download-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .license-required {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .license-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9rem;
+            color: #a0c8e0;
+            margin-bottom: 10px;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .info-value.active {
+            color: #4bb543;
+        }
+
+        .info-value.expired {
+            color: #e74c3c;
+        }
+
+        /* License Key Display */
+        .license-key-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 2px dashed #4bb543;
+        }
+
+        .license-key-display {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            letter-spacing: 3px;
+            color: #4bb543;
+            font-weight: bold;
+            word-break: break-all;
+            text-align: center;
+        }
+
+        .copy-btn {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 16px;
+            background: linear-gradient(135deg, #4bb543 0%, #3a9d32 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(75, 181, 67, 0.4);
+        }
+
+        .copy-btn:disabled {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            cursor: not-allowed;
+        }
+
         /* Responsive Navigation */
         @media (max-width: 768px) {
             .nav-links {
@@ -725,132 +845,6 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
 
-        /* License Section - Centered */
-        .license-section {
-            width: 100%;
-            margin: 40px 0;
-        }
-
-        .license-card {
-            background: rgba(25, 40, 50, 0.85);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(75, 181, 67, 0.3);
-            text-align: center;
-        }
-
-        .license-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .license-icon {
-            font-size: 2.5rem;
-            margin-right: 15px;
-            color: #4bb543;
-        }
-
-        .license-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .license-key-box {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            text-align: center;
-            border: 2px dashed #4bb543;
-        }
-
-        .license-key-display {
-            font-family: 'Courier New', monospace;
-            font-size: 1.8rem;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            letter-spacing: 3px;
-            color: #4bb543;
-            font-weight: bold;
-            word-break: break-all;
-            text-align: center;
-        }
-
-        .copy-btn {
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-            padding: 16px;
-            background: linear-gradient(135deg, #4bb543 0%, #3a9d32 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .copy-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(75, 181, 67, 0.4);
-        }
-
-        .copy-btn:disabled {
-            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
-            cursor: not-allowed;
-        }
-
-        .license-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 25px 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .info-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .info-label {
-            font-size: 0.9rem;
-            color: #a0c8e0;
-            margin-bottom: 10px;
-        }
-
-        .info-value {
-            font-size: 1.3rem;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .info-value.active {
-            color: #4bb543;
-        }
-
-        .info-value.expired {
-            color: #e74c3c;
-        }
-
         /* Download Grid - Centered */
         .download-grid {
             display: grid;
@@ -872,6 +866,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
             flex-direction: column;
             height: 100%;
             text-align: left;
+            position: relative;
         }
 
         .download-card:hover {
@@ -966,6 +961,17 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
             background: linear-gradient(to right, #1b7a93, #5bc0de);
             box-shadow: 0 7px 20px rgba(33, 147, 176, 0.6);
             transform: translateY(-2px);
+        }
+
+        .download-btn.disabled {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .download-btn.disabled:hover {
+            transform: none;
+            box-shadow: none;
         }
 
         .instructions {
@@ -1208,17 +1214,17 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
         
         <!-- Page Contents -->
         <div class="page-content page-home" id="pageHome">
-            <!-- Home Page - Same as original dashboard content -->
+            <!-- Home Page - Downloads only -->
             <header class="dashboard-header">
                 <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
-                <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
-                <a href="https://t.me/ZEAHONGMOD" class="telegram-link" style="margin-top: 20px;">
-                    <i class="fab fa-telegram"></i> Get Support on Telegram
-                </a>
+                <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. Files are available only with an active license.</p>
                 <div class="user-header-info">
                     <div class="user-welcome">
                         <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
                         <p>Signed in as: <span id="userEmailDisplay"></span></p>
+                        <p style="margin-top: 10px; color: #4bb543; font-weight: 600;" id="licenseStatusMessage">
+                            <i class="fas fa-spinner fa-spin"></i> Checking license status...
+                        </p>
                     </div>
                     <div class="user-actions">
                         <div class="user-avatar" id="userAvatar">U</div>
@@ -1229,61 +1235,10 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                 </div>
             </header>
             
-            <!-- License Card -->
-            <div class="license-section">
-                <div class="license-card">
-                    <div class="license-header">
-                        <div class="license-icon">
-                            <i class="fas fa-key"></i>
-                        </div>
-                        <h2 class="license-title">Your MT5 EA License Key</h2>
-                    </div>
-                    
-                    <div class="license-key-box">
-                        <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
-                        <div class="license-key-display" id="licenseKeyDisplay">
-                            <i class="fas fa-spinner fa-spin"></i> Loading license key...
-                        </div>
-                        
-                        <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
-                            <i class="fas fa-copy"></i> Copy License Key
-                        </button>
-                        
-                        <div class="license-info">
-                            <div class="info-item">
-                                <div class="info-label">Status</div>
-                                <div class="info-value active" id="licenseStatus">Active</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Expires</div>
-                                <div class="info-value" id="licenseExpiry">2024-12-31</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Device</div>
-                                <div class="info-value" id="deviceStatus">Not Activated</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543; text-align: left;">
-                        <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-info-circle"></i> How to Use Your License:
-                        </h3>
-                        <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
-                            <li style="margin-bottom: 8px;">Copy your license key above</li>
-                            <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
-                            <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
-                            <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
-                            <li>Your EA will be activated for one device only</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-            
             <!-- Download Grid -->
             <div class="download-grid">
                 <!-- Trading VPS Card -->
-                <div class="download-card">
+                <div class="download-card" id="tradingVpsCard">
                     <div class="card-header">
                         <div class="card-icon">
                             <i class="fas fa-server"></i>
@@ -1303,14 +1258,14 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
                     </div>
                     
-                    <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
+                    <a href="#" class="download-btn disabled" id="downloadVpsBtn" onclick="return checkLicenseBeforeDownload('trading_vps', 'Trading VPS')">
                         <i class="fas fa-download"></i> Download VPS Setup
                     </a>
                     <p class="instructions">Includes setup guide and configuration files</p>
                 </div>
                 
                 <!-- Trading Robot Card -->
-                <div class="download-card">
+                <div class="download-card" id="tradingRobotCard">
                     <div class="card-header">
                         <div class="card-icon">
                             <i class="fas fa-robot"></i>
@@ -1334,14 +1289,14 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
                     </div>
                     
-                    <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
+                    <a href="#" class="download-btn disabled" id="downloadRobotBtn" onclick="return checkLicenseBeforeDownload('trading_robot', 'Trading Robot')">
                         <i class="fas fa-download"></i> Download EA & Settings
                     </a>
                     <p class="instructions">Extract to your MT5 Experts folder</p>
                 </div>
                 
                 <!-- BTrader Tools Card -->
-                <div class="download-card">
+                <div class="download-card" id="btraderToolsCard">
                     <div class="card-header">
                         <div class="card-icon">
                             <i class="fas fa-tools"></i>
@@ -1361,7 +1316,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
                     </div>
                     
-                    <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
+                    <a href="#" class="download-btn disabled" id="downloadToolsBtn" onclick="return checkLicenseBeforeDownload('btrader_tools', 'BTrader Tools')">
                         <i class="fas fa-download"></i> Download Toolkit
                     </a>
                     <p class="instructions">Full trading toolkit with installation guide</p>
@@ -1456,40 +1411,60 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                 </div>
 
                 <div class="license-container">
-                    <h2 style="color: #4bb543; margin-bottom: 30px;">Your Current License</h2>
-                    
-                    <div class="license-info" style="max-width: 600px; margin: 0 auto 40px auto;">
-                        <div class="info-item">
-                            <div class="info-label">License Key</div>
-                            <div class="info-value" id="currentLicenseKey">Loading...</div>
+                    <!-- License Key Section -->
+                    <div class="license-card" style="margin-bottom: 40px;">
+                        <div class="license-header">
+                            <div class="license-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <h2 class="license-title">Your MT5 EA License Key</h2>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">Status</div>
-                            <div class="info-value active" id="currentLicenseStatus">Active</div>
+                        
+                        <div class="license-key-box">
+                            <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
+                            <div class="license-key-display" id="licenseKeyDisplay">
+                                <i class="fas fa-spinner fa-spin"></i> Loading license key...
+                            </div>
+                            
+                            <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
+                                <i class="fas fa-copy"></i> Copy License Key
+                            </button>
+                            
+                            <div class="license-info">
+                                <div class="info-item">
+                                    <div class="info-label">Status</div>
+                                    <div class="info-value" id="licenseStatus">Checking...</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Expires</div>
+                                    <div class="info-value" id="licenseExpiry">Checking...</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Device</div>
+                                    <div class="info-value" id="deviceStatus">Checking...</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-label">Expiration Date</div>
-                            <div class="info-value" id="currentLicenseExpiry">2024-12-31</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Products</div>
-                            <div class="info-value" id="currentLicenseProducts">3 Products</div>
+                        
+                        <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543; text-align: left;">
+                            <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-info-circle"></i> How to Use Your License:
+                            </h3>
+                            <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
+                                <li style="margin-bottom: 8px;">Copy your license key above</li>
+                                <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
+                                <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
+                                <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
+                                <li>Your EA will be activated for one device only</li>
+                            </ol>
                         </div>
                     </div>
 
-                    <div style="background: rgba(75, 181, 67, 0.1); padding: 25px; border-radius: 10px; margin-bottom: 40px;">
-                        <h3 style="color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                            <i class="fas fa-sync-alt"></i> Renew Your License
-                        </h3>
-                        <p style="color: #a0c8e0; margin-bottom: 20px;">
-                            Keep your trading tools up to date with continued support and updates.
-                        </p>
-                        <div style="text-align: center;">
-                            <button class="buy-btn" onclick="renewLicense()" style="max-width: 300px;">
-                                <i class="fas fa-sync"></i> Renew License
-                            </button>
-                        </div>
-                    </div>
+                    <!-- License Purchase Options -->
+                    <h2 style="text-align: center; color: #ffffff; margin: 40px 0 20px 0;">Upgrade Your License</h2>
+                    <p style="text-align: center; color: #a0c8e0; max-width: 800px; margin: 0 auto 30px auto;">
+                        Choose the license plan that best fits your trading needs. All plans include updates and support.
+                    </p>
 
                     <div class="license-types">
                         <div class="license-type">
@@ -1605,11 +1580,23 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
         const userAvatar = document.getElementById('userAvatar');
         const licenseKeyDisplay = document.getElementById('licenseKeyDisplay');
         const copyButton = document.getElementById('copyButton');
+        const licenseStatusMessage = document.getElementById('licenseStatusMessage');
         
         // Page elements
         const pageHome = document.getElementById('pageHome');
         const pageShop = document.getElementById('pageShop');
         const pageLicense = document.getElementById('pageLicense');
+        
+        // Download buttons
+        const downloadVpsBtn = document.getElementById('downloadVpsBtn');
+        const downloadRobotBtn = document.getElementById('downloadRobotBtn');
+        const downloadToolsBtn = document.getElementById('downloadToolsBtn');
+        
+        // Global variables
+        let userLicenseKey = null;
+        let isLicenseActive = false;
+        let licenseStatus = 'inactive';
+        let licenseExpiry = '';
 
         // Initialize
         init();
@@ -1638,7 +1625,6 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                     // User is signed in
                     showDashboard(user);
                     await updateUserLicenseInfo(user.email);
-                    updateCurrentLicenseDisplay();
                 } else {
                     // User is signed out
                     showLoginPage();
@@ -1703,31 +1689,181 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                 pageLicense.style.display = 'block';
                 document.querySelector('.nav-links a[onclick*="license"]').classList.add('active');
                 document.title = 'Dashboard - License';
-                updateCurrentLicenseDisplay();
             }
         };
 
-        // Update current license display on license page
-        function updateCurrentLicenseDisplay() {
-            if (window.userLicenseKey) {
-                document.getElementById('currentLicenseKey').textContent = window.userLicenseKey;
-                document.getElementById('currentLicenseKey').style.color = '#4bb543';
-                document.getElementById('currentLicenseKey').style.fontFamily = "'Courier New', monospace";
+        // Update user license information
+        async function updateUserLicenseInfo(userEmail) {
+            try {
+                console.log('Fetching license for:', userEmail);
                 
-                // Update other license info
-                const licenseStatus = document.getElementById('licenseStatus').textContent;
-                const licenseExpiry = document.getElementById('licenseExpiry').textContent;
+                const formData = new URLSearchParams();
+                formData.append('action', 'get_license');
+                formData.append('email', userEmail);
                 
-                document.getElementById('currentLicenseStatus').textContent = licenseStatus;
-                document.getElementById('currentLicenseExpiry').textContent = licenseExpiry;
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
                 
-                if (licenseStatus === 'Active') {
-                    document.getElementById('currentLicenseStatus').className = 'info-value active';
-                } else {
-                    document.getElementById('currentLicenseStatus').className = 'info-value expired';
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
+                const data = await response.text();
+                console.log('License response:', data);
+                
+                if (data === 'NOT_FOUND' || data === 'INVALID' || !data) {
+                    // No license found
+                    handleNoLicense();
+                } else if (data.includes('|')) {
+                    // Parse license info
+                    const parts = data.split('|');
+                    console.log('Parsed parts:', parts);
+                    
+                    if (parts.length >= 4) {
+                        const licenseKey = parts[0];
+                        const status = parts[1];
+                        const expiry = parts[2];
+                        const device = parts[3];
+                        
+                        // Store license info globally
+                        userLicenseKey = licenseKey;
+                        licenseStatus = status;
+                        licenseExpiry = expiry;
+                        isLicenseActive = (status === 'active');
+                        
+                        // Update license display
+                        updateLicenseDisplay(licenseKey, status, expiry, device);
+                        
+                        // Update download buttons based on license status
+                        updateDownloadButtons(isLicenseActive);
+                    }
+                } else {
+                    throw new Error('Unexpected response format');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching license info:', error);
+                licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
+                licenseStatusMessage.innerHTML = '<span style="color: #e74c3c;">Error loading license</span>';
             }
         }
+
+        // Handle no license found
+        function handleNoLicense() {
+            userLicenseKey = null;
+            isLicenseActive = false;
+            licenseStatus = 'inactive';
+            
+            // Update license display
+            licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+            licenseKeyDisplay.style.fontSize = '1.2rem';
+            
+            document.getElementById('licenseStatus').textContent = 'No License';
+            document.getElementById('licenseStatus').className = 'info-value expired';
+            document.getElementById('licenseExpiry').textContent = 'N/A';
+            document.getElementById('deviceStatus').textContent = 'N/A';
+            
+            copyButton.disabled = true;
+            copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+            copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+            
+            // Update home page message
+            licenseStatusMessage.innerHTML = '<span style="color: #e74c3c;"><i class="fas fa-times-circle"></i> No active license found. Visit License page to purchase.</span>';
+            
+            // Disable all downloads
+            updateDownloadButtons(false);
+        }
+
+        // Update license display
+        function updateLicenseDisplay(licenseKey, status, expiry, device) {
+            // Update license key display
+            licenseKeyDisplay.textContent = licenseKey;
+            licenseKeyDisplay.style.color = '#4bb543';
+            licenseKeyDisplay.style.fontSize = '1.8rem';
+            
+            // Update license info
+            document.getElementById('licenseStatus').textContent = status;
+            document.getElementById('licenseStatus').className = status === 'active' ? 'info-value active' : 'info-value expired';
+            document.getElementById('licenseExpiry').textContent = expiry;
+            document.getElementById('deviceStatus').textContent = device || 'Not Activated';
+            
+            // Update copy button
+            copyButton.disabled = false;
+            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+            copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+            
+            // Update home page message
+            if (status === 'active') {
+                licenseStatusMessage.innerHTML = '<span style="color: #4bb543;"><i class="fas fa-check-circle"></i> Active license. Downloads are enabled.</span>';
+            } else {
+                licenseStatusMessage.innerHTML = '<span style="color: #e74c3c;"><i class="fas fa-times-circle"></i> License expired. Visit License page to renew.</span>';
+            }
+        }
+
+        // Update download buttons based on license status
+        function updateDownloadButtons(isActive) {
+            const downloadButtons = [downloadVpsBtn, downloadRobotBtn, downloadToolsBtn];
+            const downloadCards = [
+                document.getElementById('tradingVpsCard'),
+                document.getElementById('tradingRobotCard'),
+                document.getElementById('btraderToolsCard')
+            ];
+            
+            downloadButtons.forEach((btn, index) => {
+                if (isActive && licenseStatus === 'active') {
+                    // Enable download
+                    btn.classList.remove('disabled');
+                    btn.href = getDownloadLink(index);
+                    downloadCards[index].classList.remove('download-disabled');
+                    
+                    // Remove license required badge if exists
+                    const existingBadge = downloadCards[index].querySelector('.license-required');
+                    if (existingBadge) {
+                        existingBadge.remove();
+                    }
+                } else {
+                    // Disable download
+                    btn.classList.add('disabled');
+                    btn.href = '#';
+                    downloadCards[index].classList.add('download-disabled');
+                    
+                    // Add license required badge
+                    if (!downloadCards[index].querySelector('.license-required')) {
+                        const badge = document.createElement('div');
+                        badge.className = 'license-required';
+                        badge.innerHTML = '<i class="fas fa-key"></i> License Required';
+                        downloadCards[index].appendChild(badge);
+                    }
+                }
+            });
+        }
+
+        // Get download link based on index
+        function getDownloadLink(index) {
+            const links = [
+                '<?php echo $download_links['trading_vps']; ?>',
+                '<?php echo $download_links['trading_robot']; ?>',
+                '<?php echo $download_links['btrader_tools']; ?>'
+            ];
+            return links[index] || '#';
+        }
+
+        // Check license before download
+        window.checkLicenseBeforeDownload = function(productType, productName) {
+            if (!isLicenseActive || licenseStatus !== 'active') {
+                showMessage('error', 'You need an active license to download this file. Please visit the License page.');
+                showPage('license');
+                return false;
+            }
+            
+            // Confirm download
+            return confirm(`You are about to download: ${productName}\n\nMake sure you have an active subscription to use this product.`);
+        };
 
         // Purchase functions
         window.purchaseProduct = function(productName) {
@@ -1750,83 +1886,6 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                 window.open('https://t.me/ZEAHONGMOD', '_blank');
             }, 1000);
         };
-
-        // Rest of your existing Firebase functions remain the same...
-        // ... (all your existing Firebase authentication code remains unchanged)
-
-       // Update user license information
-async function updateUserLicenseInfo(userEmail) {
-    try {
-        console.log('Fetching license for:', userEmail);
-        
-        const formData = new URLSearchParams();
-        formData.append('action', 'get_license');
-        formData.append('email', userEmail);
-        
-        const response = await fetch('login.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.text();
-        console.log('License response:', data);
-        
-        if (data === 'NOT_FOUND' || data === 'INVALID' || !data) {
-            // No license found
-            licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
-            licenseKeyDisplay.style.fontSize = '1.2rem';
-            document.getElementById('licenseStatus').textContent = 'No License';
-            document.getElementById('licenseStatus').className = 'info-value expired';
-            document.getElementById('licenseExpiry').textContent = 'N/A';
-            document.getElementById('deviceStatus').textContent = 'N/A';
-            copyButton.disabled = true;
-            copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
-            copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
-            
-        } else if (data.includes('|')) {
-            // Parse license info
-            const parts = data.split('|');
-            console.log('Parsed parts:', parts);
-            
-            if (parts.length >= 4) {
-                const licenseKey = parts[0];
-                const status = parts[1];
-                const expiry = parts[2];
-                const device = parts[3];
-                
-                // Display license
-                licenseKeyDisplay.textContent = licenseKey;
-                licenseKeyDisplay.style.color = '#4bb543';
-                licenseKeyDisplay.style.fontSize = '1.8rem';
-                document.getElementById('licenseStatus').textContent = status;
-                document.getElementById('licenseStatus').className = status === 'active' ? 'info-value active' : 'info-value expired';
-                document.getElementById('licenseExpiry').textContent = expiry;
-                document.getElementById('deviceStatus').textContent = device || 'Not Activated';
-                
-                // Enable copy button
-                copyButton.disabled = false;
-                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
-                copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
-                
-                // Store for copying
-                window.userLicenseKey = licenseKey;
-            }
-        } else {
-            throw new Error('Unexpected response format');
-        }
-        
-    } catch (error) {
-        console.error('Error fetching license info:', error);
-        licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
-    }
-}
 
         // Show/Hide Forms
         window.showSignup = function() {
@@ -2071,12 +2130,12 @@ async function updateUserLicenseInfo(userEmail) {
 
         // Copy license key function
         window.copyLicenseKey = function() {
-            if (!window.userLicenseKey) {
+            if (!userLicenseKey) {
                 showMessage('error', 'No license key available to copy');
                 return;
             }
             
-            navigator.clipboard.writeText(window.userLicenseKey).then(() => {
+            navigator.clipboard.writeText(userLicenseKey).then(() => {
                 const originalText = copyButton.innerHTML;
                 copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 copyButton.style.background = 'linear-gradient(135deg, #27ae60 0%, #219653 100%)';
@@ -2091,11 +2150,6 @@ async function updateUserLicenseInfo(userEmail) {
                 console.error('Failed to copy:', err);
                 showMessage('error', 'Failed to copy license key');
             });
-        };
-
-        // Download confirmation
-        window.confirmDownload = function(productName) {
-            return confirm(`You are about to download: ${productName}\n\nMake sure you have an active subscription to use this product.`);
         };
     </script>
 </body>
