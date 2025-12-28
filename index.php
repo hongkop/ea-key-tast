@@ -1262,9 +1262,9 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                     </div>
                     
                     <a href="#" class="download-btn disabled" id="downloadVpsBtn" onclick="return checkLicenseBeforeDownload('trading_vps', 'Trading VPS')">
-                        <i class="fas fa-download"></i> Download VPS Setup
+                        <i class="fas fa-download"></i> Download EA
                     </a>
-                    <p class="instructions">Includes setup guide and configuration files</p>
+                    <p class="instructions">Extract to your MT5 Experts folder</p>
                 </div>
                 
                 <!-- Trading Robot Card -->
@@ -1289,11 +1289,11 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                     </ul>
                     
                     <div class="file-info">
-                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • ZIP format
                     </div>
                     
                     <a href="#" class="download-btn disabled" id="downloadRobotBtn" onclick="return checkLicenseBeforeDownload('trading_robot', 'Trading Robot')">
-                        <i class="fas fa-download"></i> Download EA & Settings
+                        <i class="fas fa-download"></i> Download EA
                     </a>
                     <p class="instructions">Extract to your MT5 Experts folder</p>
                 </div>
@@ -1323,7 +1323,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                     </ul>
                     
                     <div class="file-info">
-                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • ZIP format
                     </div>
                     
                     <a href="#" class="download-btn disabled" id="downloadToolsBtn" onclick="return checkLicenseBeforeDownload('btrader_tools', 'BTrader Tools')">
@@ -1354,7 +1354,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <li>Indicator Price Action (life time)</li>
                         <li>Indicator SMT CISD CANDLE TIME (life time)</li>
                     </ul>
-                    <div class="license-price">$99<span class="license-period">/lifetime</span></div>
+                    <div class="license-price">$25<span class="license-period">/Month</span></div>
                     <button class="buy-btn" onclick="purchaseProduct('Advanced Indicator')">
                         <i class="fas fa-shopping-cart"></i> Purchase Now
                     </button>
