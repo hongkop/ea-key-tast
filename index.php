@@ -1083,7 +1083,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                 <div class="logo">
                     <i class="fas fa-user-shield"></i>
                 </div>
-                <h1>Zeahong Trading 111</h1>
+                <h1>ZEAHONGMOD</h1>
                 <p>Secure Authentication System</p>
             </div>
 
@@ -1241,17 +1241,20 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                 <div class="download-card" id="tradingVpsCard">
                     <div class="card-header">
                         <div class="card-icon">
-                            <i class="fas fa-server"></i>
+                            <i class="fas fa-robot"></i>
                         </div>
-                       <h2 class="card-title">Indicator Tview</h2>
+                       <h2 class="card-title">Smart RSI Ea</h2>
                     </div>
                     
-                    <div class="card-price">$15.00 <span>/LifeTime</span></div>
+                    <div class="card-price">$00.00 <span>/month</span></div>
                     
                     <ul class="features-list">
-                        <li>Order Block</li>
-                        <li>Volume Block</li>
-                        <li>Pre-installed TradingView</li>
+                        <li>EA for MetaTrader 5</li>
+                        <li>RSI trading system</li>
+                        <li>Dynamic lot sizing</li>
+                        <li>Smart grid system</li>
+                        <li>Smart takeprofit system</li>
+                        <li>+9 more advanced features</li>
                     </ul>
                     
                     <div class="file-info">
@@ -1273,7 +1276,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <h2 class="card-title">Trading Robot</h2>
                     </div>
                     
-                    <div class="card-price">$20.00 <span>/month</span></div>
+                    <div class="card-price">$00.00 <span>/month</span></div>
                     
                     <ul class="features-list">
                         <li>EA for MetaTrader 5</li>
@@ -1301,7 +1304,7 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <div class="card-icon">
                             <i class="fas fa-tools"></i>
                         </div>
-                       <h2 class="card-title">Setting Tools</h2>
+                       <h2 class="card-title">Setting + Indicator</h2>
                     </div>
                     
                     <div class="card-price">$00.00 <span>/month</span></div>
@@ -1310,6 +1313,13 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                         <li>3k-5K Balance</li>
                         <li>30k-50K Balance</li>
                         <li>300k-500K Balance</li>
+                        
+                        <li>Indicator Price Action (life time)</li>
+                        <li>Indicator SMT CISD CANDLE TIME (life time)</li>
+
+                        <li>Order Block</li>
+                        <li>Volume Block</li>
+                        <li>Pre-installed TradingView</li>
                     </ul>
                     
                     <div class="file-info">
@@ -1336,54 +1346,16 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                     <div class="product-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3 class="product-title">Advanced Trading Indicator</h3>
-                    <p class="product-description">Professional trading indicator with real-time signals and advanced analytics.</p>
+                    <h3 class="product-title">EA TRADE + INDICATOR </h3>
+                    <p class="product-description">Professional trading indicator with Ea Auto Trade.</p>
                     <ul class="product-features">
-                        <li>Real-time buy/sell signals</li>
-                        <li>Multiple timeframe analysis</li>
-                        <li>Custom alert system</li>
-                        <li>Mobile notifications</li>
+                        <li>Scalping EA buy/sell</li>
+                        <li>RSI EA</li>
+                        <li>Indicator Price Action (life time)</li>
+                        <li>Indicator SMT CISD CANDLE TIME (life time)</li>
                     </ul>
                     <div class="license-price">$99<span class="license-period">/lifetime</span></div>
                     <button class="buy-btn" onclick="purchaseProduct('Advanced Indicator')">
-                        <i class="fas fa-shopping-cart"></i> Purchase Now
-                    </button>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <h3 class="product-title">Premium EA Package</h3>
-                    <p class="product-description">Complete expert advisor package with multiple strategies and risk management.</p>
-                    <ul class="product-features">
-                        <li>5 different trading strategies</li>
-                        <li>Advanced risk management</li>
-                        <li>Auto news filter</li>
-                        <li>24/7 support</li>
-                        <li>Regular updates</li>
-                    </ul>
-                    <div class="license-price">$299<span class="license-period">/lifetime</span></div>
-                    <button class="buy-btn" onclick="purchaseProduct('Premium EA Package')">
-                        <i class="fas fa-shopping-cart"></i> Purchase Now
-                    </button>
-                </div>
-
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <h3 class="product-title">Trading Toolkit Pro</h3>
-                    <p class="product-description">Complete toolkit with all essential trading tools and utilities.</p>
-                    <ul class="product-features">
-                        <li>Position calculator</li>
-                        <li>Risk management tools</li>
-                        <li>Trade journal</li>
-                        <li>Performance analytics</li>
-                        <li>Custom scripts</li>
-                    </ul>
-                    <div class="license-price">$149<span class="license-period">/lifetime</span></div>
-                    <button class="buy-btn" onclick="purchaseProduct('Trading Toolkit Pro')">
                         <i class="fas fa-shopping-cart"></i> Purchase Now
                     </button>
                 </div>
@@ -1402,11 +1374,14 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
             </div>
         </div>
 
+        
+
         <!-- License Page -->
         <div class="page-content" id="pageLicense">
             <div class="license-page">
                 <div class="license-header">
-                    <h1><i class="fas fa-key"></i> License Management</h1>
+                    <h2 class="license-title">--------</h2>
+                     <h1><i class="fas fa-key"></i> License Management</h1>
                     <p>Manage your trading tool licenses, check expiration dates, and renew your subscriptions.</p>
                 </div>
 
@@ -1461,56 +1436,9 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'home';
                     </div>
 
                     <!-- License Purchase Options -->
-                    <h2 style="text-align: center; color: #ffffff; margin: 40px 0 20px 0;">Upgrade Your License</h2>
-                    <p style="text-align: center; color: #a0c8e0; max-width: 800px; margin: 0 auto 30px auto;">
-                        Choose the license plan that best fits your trading needs. All plans include updates and support.
-                    </p>
+                    
 
-                    <div class="license-types">
-                        <div class="license-type">
-                            <h3>Basic License</h3>
-                            <div class="license-price">$99<span class="license-period">/year</span></div>
-                            <ul class="license-features">
-                                <li>1 Trading Tool</li>
-                                <li>Basic Support</li>
-                                <li>Email Updates</li>
-                                <li>1 Year Updates</li>
-                            </ul>
-                            <button class="buy-btn" onclick="purchaseLicense('Basic')">
-                                <i class="fas fa-shopping-cart"></i> Purchase
-                            </button>
-                        </div>
-
-                        <div class="license-type" style="border-color: #4dabf7;">
-                            <h3 style="color: #4dabf7;">Professional License</h3>
-                            <div class="license-price">$299<span class="license-period">/year</span></div>
-                            <ul class="license-features">
-                                <li>All Trading Tools</li>
-                                <li>Priority Support</li>
-                                <li>Telegram Support</li>
-                                <li>Lifetime Updates</li>
-                                <li>Early Access</li>
-                            </ul>
-                            <button class="buy-btn" onclick="purchaseLicense('Professional')" style="background: linear-gradient(135deg, #4dabf7 0%, #2193b0 100%);">
-                                <i class="fas fa-shopping-cart"></i> Purchase
-                            </button>
-                        </div>
-
-                        <div class="license-type">
-                            <h3>Enterprise License</h3>
-                            <div class="license-price">Custom<span class="license-period">/tailored</span></div>
-                            <ul class="license-features">
-                                <li>Custom Solutions</li>
-                                <li>24/7 Support</li>
-                                <li>White Label Option</li>
-                                <li>API Access</li>
-                                <li>Training Sessions</li>
-                            </ul>
-                            <a href="https://t.me/ZEAHONGMOD" class="telegram-link" style="display: block; margin-top: 20px;">
-                                <i class="fab fa-telegram"></i> Contact for Quote
-                            </a>
-                        </div>
-                    </div>
+                    
 
                     <div class="purchase-license">
                         <h2 style="text-align: center; color: #ffffff; margin: 40px 0 20px 0;">Need Help with Your License?</h2>
