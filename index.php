@@ -1,4 +1,4 @@
- <?php
+<?php
 session_start();
 
 // Download URLs for each product
@@ -14,6 +14,89 @@ $file_sizes = [
     'trading_robot' => '28 MB',
     'btrader_tools' => '62 MB'
 ];
+
+// SQLite database connection for license management
+define('DB_FILE', 'licenses.db');
+
+// Function to get user license from SQLite database
+function getUserLicense($email) {
+    if (!file_exists(DB_FILE)) {
+        return 'NOT_FOUND|No license database found|N/A|Not Activated';
+    }
+    
+    try {
+        $db = new SQLite3(DB_FILE);
+        
+        // Check if licenses table exists
+        $tableCheck = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='licenses'");
+        if (!$tableCheck->fetchArray()) {
+            $db->close();
+            return 'NOT_FOUND|Database not initialized|N/A|Not Activated';
+        }
+        
+        // Get user's license
+        $stmt = $db->prepare("SELECT * FROM licenses WHERE user_email = :email ORDER BY created_at DESC LIMIT 1");
+        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        $license = $result->fetchArray(SQLITE3_ASSOC);
+        
+        if ($license) {
+            $license_key = $license['license_key'];
+            $status = $license['status'];
+            $expires_at = $license['expires_at'];
+            $device_id = $license['device_id'] ?: 'Not Activated';
+            $customer_type = $license['customer_type'] ?: 'User';
+            
+            // Check if license is expired
+            if ($status === 'active' && $expires_at) {
+                $expires_date = new DateTime($expires_at);
+                $now = new DateTime();
+                if ($now > $expires_date) {
+                    $status = 'expired';
+                    // Update status in database
+                    $update = $db->prepare("UPDATE licenses SET status = 'expired', last_updated = datetime('now') WHERE license_key = :key");
+                    $update->bindValue(':key', $license_key, SQLITE3_TEXT);
+                    $update->execute();
+                }
+            }
+            
+            $db->close();
+            return $license_key . '|' . $status . '|' . date('Y-m-d', strtotime($expires_at)) . '|' . $device_id;
+        } else {
+            // Check if user has any license (case insensitive)
+            $stmt = $db->prepare("SELECT * FROM licenses WHERE LOWER(user_email) = LOWER(:email) ORDER BY created_at DESC LIMIT 1");
+            $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+            $result = $stmt->execute();
+            $license = $result->fetchArray(SQLITE3_ASSOC);
+            
+            if ($license) {
+                $license_key = $license['license_key'];
+                $status = $license['status'];
+                $expires_at = $license['expires_at'];
+                $device_id = $license['device_id'] ?: 'Not Activated';
+                
+                $db->close();
+                return $license_key . '|' . $status . '|' . date('Y-m-d', strtotime($expires_at)) . '|' . $device_id;
+            }
+            
+            $db->close();
+            return 'NOT_FOUND|No license assigned|N/A|Not Activated';
+        }
+        
+    } catch (Exception $e) {
+        error_log("License query error: " . $e->getMessage());
+        return 'ERROR|Database error: ' . $e->getMessage() . '|N/A|Not Activated';
+    }
+}
+
+// Handle license API request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'get_license' && isset($_POST['email'])) {
+        $licenseInfo = getUserLicense($_POST['email']);
+        echo $licenseInfo;
+        exit;
+    }
+}
 
 // Check if user is logged in via Firebase
 $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
@@ -38,57 +121,251 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #e0e0e0;
             min-height: 100vh;
+        }
+
+        /* Navigation Menu */
+        .main-nav {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .nav-logo i {
+            font-size: 28px;
+            color: #4dabf7;
+        }
+
+        .nav-logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4dabf7 0%, #2193b0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 30px;
             align-items: center;
         }
 
-        /* Login Page Styles - Centered */
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 0;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover {
+            color: #4dabf7;
+        }
+
+        .nav-link.active {
+            color: #4dabf7;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(135deg, #4dabf7 0%, #2193b0 100%);
+            border-radius: 2px;
+        }
+
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar-small {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #a0c8e0;
+        }
+
+        .nav-logout {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Login Page Styles - Modern Gradient Background */
         .login-page {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             width: 100%;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
         }
 
         .container {
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease;
         }
 
-        /* Header - Centered */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header - Modern Design */
         .header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
         }
 
         .logo {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
         }
 
         .header p {
             opacity: 0.9;
-            margin-top: 5px;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Content - Centered */
+        /* Content - Modern Design */
         .content {
-            padding: 40px 30px;
+            padding: 40px 35px;
             text-align: center;
         }
 
@@ -98,22 +375,35 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         }
 
         .form-title {
-            color: #333;
-            font-size: 1.5rem;
-            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
             text-align: center;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .form-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            margin: 10px auto 0;
+            border-radius: 2px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-            font-size: 14px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.3s;
         }
 
         .input-group {
@@ -122,77 +412,105 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         .input-group i {
             position: absolute;
-            left: 15px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: #666;
+            color: #6a11cb;
+            font-size: 18px;
+            transition: all 0.3s;
         }
 
         .input-group input {
             width: 100%;
-            padding: 15px 15px 15px 45px;
-            border: 2px solid #e1e5ee;
-            border-radius: 10px;
+            padding: 16px 20px 16px 55px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
             font-size: 16px;
             transition: all 0.3s;
+            background: white;
+            color: #333;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #6a11cb;
-            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+            box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.15);
+        }
+
+        .input-group input:focus + i {
+            color: #2575fc;
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s;
             margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
             background: transparent;
             color: #6a11cb;
             border: 2px solid #6a11cb;
+            margin-top: 15px;
         }
 
         .btn-secondary:hover {
             background: rgba(106, 17, 203, 0.1);
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.2);
         }
 
         .toggle-link {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 30px;
             color: #666;
-            font-size: 14px;
+            font-size: 15px;
         }
 
         .toggle-link a {
             color: #6a11cb;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            transition: all 0.3s;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+
+        .toggle-link a:hover {
+            background: rgba(106, 17, 203, 0.1);
+            text-decoration: underline;
         }
 
         .message {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             display: none;
             animation: slideIn 0.3s ease;
-            text-align: center;
+            text-align: left;
+            border-left: 5px solid;
         }
 
         @keyframes slideIn {
@@ -207,29 +525,29 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         }
 
         .message.error {
-            background: #fee;
+            background: rgba(231, 76, 60, 0.1);
             color: #e74c3c;
-            border-left: 4px solid #e74c3c;
+            border-left-color: #e74c3c;
         }
 
         .message.success {
-            background: #efc;
+            background: rgba(39, 174, 96, 0.1);
             color: #27ae60;
-            border-left: 4px solid #27ae60;
+            border-left-color: #27ae60;
         }
 
         .message.info {
-            background: #e3f2fd;
-            color: #2196f3;
-            border-left: 4px solid #2196f3;
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+            border-left-color: #3498db;
         }
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #6a11cb;
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -241,63 +559,99 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         .forgot-password {
             text-align: right;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .forgot-password a {
-            color: #666;
+            color: #6a11cb;
             font-size: 14px;
             text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
         }
 
         .admin-note {
             text-align: center;
-            margin-top: 20px;
-            padding: 10px;
+            margin-top: 25px;
+            padding: 15px;
             background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 12px;
+            border-radius: 10px;
+            font-size: 13px;
             color: #666;
+            border-left: 4px solid #6a11cb;
         }
 
         .powered-by {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 35px;
             color: #999;
-            font-size: 12px;
+            font-size: 13px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
         }
 
-        /* Dashboard - Centered Layout */
-        .dashboard {
+        .powered-by span {
+            color: #6a11cb;
+            font-weight: 600;
+        }
+
+        /* Form Switch Animation */
+        .form-container {
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+
+        .form-container.hidden {
+            display: none;
+        }
+
+        /* Password Strength Indicator */
+        .password-strength {
+            height: 4px;
+            background: #eee;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            background: #e74c3c;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        /* Main Content Sections */
+        .main-content {
             display: none;
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 30px 20px;
+            min-height: calc(100vh - 80px);
         }
 
-        /* Admin Panel Link - Top Right */
-        .admin-panel-link {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-            transition: all 0.3s;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
         }
 
-        .admin-panel-link:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.6);
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Dashboard Header - Centered */
@@ -512,6 +866,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             color: #e74c3c;
         }
 
+        .info-value.pending {
+            color: #f39c12;
+        }
+
         /* Download Grid - Centered */
         .download-grid {
             display: grid;
@@ -636,6 +994,191 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             text-align: center;
         }
 
+        /* Shop Page Styles */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .shop-item {
+            background: rgba(25, 40, 50, 0.85);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(64, 128, 192, 0.3);
+            text-align: center;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            border-color: rgba(64, 128, 192, 0.6);
+        }
+
+        .shop-item-icon {
+            font-size: 3rem;
+            color: #4dabf7;
+            margin-bottom: 15px;
+        }
+
+        .shop-item-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .shop-item-price {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .shop-item-features {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .shop-item-features li {
+            padding: 8px 0;
+            color: #a0c8e0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .shop-item-features li:last-child {
+            border-bottom: none;
+        }
+
+        .buy-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .buy-btn:hover {
+            background: linear-gradient(135deg, #219653 0%, #1e8449 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        /* Blog Page Styles */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .blog-post {
+            background: rgba(25, 40, 50, 0.85);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .blog-post:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .blog-post-img {
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .blog-post-content {
+            padding: 25px;
+        }
+
+        .blog-post-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .blog-post-date {
+            color: #4dabf7;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .blog-post-excerpt {
+            color: #a0c8e0;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .read-more {
+            color: #4dabf7;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* License Actions */
+        .license-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .license-action-btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .license-action-btn.activate {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .license-action-btn.renew {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+
+        .license-action-btn.transfer {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+        }
+
+        .license-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
         /* Footer - Centered */
         footer {
             width: 100%;
@@ -665,8 +1208,48 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 margin: 10px;
             }
             
-            .dashboard {
-                padding: 10px;
+            .main-content {
+                padding: 20px 15px;
+            }
+            
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+                flex-direction: column;
+                padding: 20px;
+                gap: 15px;
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: all 0.3s;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                z-index: 999;
+            }
+            
+            .nav-menu.active {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .nav-auth {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .nav-user {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .user-email {
+                font-size: 12px;
             }
             
             .dashboard-header h1 {
@@ -701,11 +1284,39 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 grid-template-columns: 1fr;
             }
             
-            .admin-panel-link {
-                position: static;
-                display: block;
-                margin: 20px auto;
-                width: fit-content;
+            .login-page {
+                padding: 15px;
+            }
+            
+            .content {
+                padding: 30px 25px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .shop-grid,
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .license-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .license-action-btn {
+                width: 100%;
+                max-width: 300px;
             }
         }
 
@@ -726,11 +1337,70 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 flex-direction: column;
                 gap: 15px;
             }
+            
+            .container {
+                max-width: 100%;
+                border-radius: 20px;
+            }
+            
+            .content {
+                padding: 25px 20px;
+            }
+            
+            .btn {
+                padding: 16px;
+                font-size: 16px;
+            }
+            
+            .form-title {
+                font-size: 1.6rem;
+            }
         }
     </style>
 </head>
 <body>
     
+    <!-- Navigation Menu -->
+    <nav class="main-nav" id="mainNav" style="display: none;">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" onclick="showSection('home')">
+                <i class="fas fa-chart-line"></i>
+                <span class="nav-logo-text">ZEAHONG TRADING</span>
+            </a>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-menu" id="navMenu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" onclick="showSection('home')">
+                        <i class="fas fa-home"></i> HOME
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('shop')">
+                        <i class="fas fa-shopping-cart"></i> SHOP
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('blog')">
+                        <i class="fas fa-blog"></i> BLOG
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" onclick="showSection('license')">
+                        <i class="fas fa-key"></i> MY LICENSE
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="nav-auth" id="navAuth">
+                <!-- User info will be populated here -->
+            </div>
+        </div>
+    </nav>
+
     <!-- Login Page -->
     <div class="login-page" id="loginPage">
         <div class="container">
@@ -804,6 +1474,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="signupPassword" placeholder="Create password (min. 6 chars)" required minlength="6">
                             </div>
+                            <div class="password-strength">
+                                <div class="strength-bar" id="passwordStrength"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="confirmPassword">Confirm Password</label>
@@ -843,185 +1516,411 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                         </button>
                     </form>
                 </div>
+
+                <div class="powered-by">
+                    Powered by <span>Firebase Authentication</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard -->
-    <div class="dashboard" id="dashboard">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
-            <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
-            <a href="https://t.me/ZEAHONGMOD">Get License</a>
-            <div class="user-header-info">
-                <div class="user-welcome">
-                    <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
-                    <p>Signed in as: <span id="userEmailDisplay"></span></p>
-                </div>
-                <div class="user-actions">
-                    <div class="user-avatar" id="userAvatar">U</div>
-                    <button class="logout-btn" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
-            </div>
-        </header>
-        
-        <!-- License Card -->
-        <div class="license-section">
-            <div class="license-card">
-                <div class="license-header">
-                    <div class="license-icon">
-                        <i class="fas fa-key"></i>
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Home Section -->
+        <section class="section active" id="homeSection">
+            <header class="dashboard-header">
+                <h1><i class="fas fa-download"></i> Trading Tools Download Center</h1>
+                <p class="dashboard-subtitle">Download your purchased trading tools, expert advisors, and configurations. All files are pre-configured and ready to use with your trading platforms.</p>
+                <a href="https://t.me/ZEAHONGMOD" style="color: #4dabf7; text-decoration: none; font-weight: 600; margin-top: 10px; display: inline-block;">Get License</a>
+                <div class="user-header-info">
+                    <div class="user-welcome">
+                        <h3>Welcome back, <span id="welcomeUserName">User</span>!</h3>
+                        <p>Signed in as: <span id="userEmailDisplay"></span></p>
                     </div>
-                    <h2 class="license-title">Your MT5 EA License Key</h2>
-                    
+                    <div class="user-actions">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <button class="logout-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="license-key-box">
-                    <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
-                    <a href="https://t.me/ZEAHONGMOD">Get License</a>
-                    <div class="license-key-display" id="licenseKeyDisplay">
-                        <i class="fas fa-spinner fa-spin"></i> Loading license key...
+            </header>
+            
+            <!-- Download Grid -->
+            <div class="download-grid">
+                <!-- Trading VPS Card -->
+                <div class="download-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                       <h2 class="card-title">Indicator Tview</h2>
                     </div>
                     
-                    <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
-                        <i class="fas fa-copy"></i> Copy License Key
-                    </button>
+                    <div class="card-price">$15.00 <span>/LifeTime</span></div>
                     
-                    <div class="license-info">
-                        <div class="info-item">
-                            <div class="info-label">Status</div>
-                            <div class="info-value active" id="licenseStatus">Active</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Expires</div>
-                            <div class="info-value" id="licenseExpiry">2024-12-31</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-label">Device</div>
-                            <div class="info-value" id="deviceStatus">Not Activated</div>
-                        </div>
+                    <ul class="features-list">
+                        <li>Order Block</li>
+                        <li>Volume Block</li>
+                        <li>Pre-installed TradingView</li>
+                    </ul>
+                    
+                    <div class="file-info">
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
                     </div>
+                    
+                    <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
+                        <i class="fas fa-download"></i> Download VPS Setup
+                    </a>
+                    <p class="instructions">Includes setup guide and configuration files</p>
                 </div>
                 
-                <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543; text-align: left;">
-                    <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-info-circle"></i> How to Use Your License:
-                    </h3>
-                    <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
-                        <li style="margin-bottom: 8px;">Copy your license key above</li>
-                        <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
-                        <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
-                        <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
-                        <li>Your EA will be activated for one device only</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Download Grid -->
-        <div class="download-grid">
-            <!-- Trading VPS Card -->
-            <div class="download-card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-server"></i>
+                <!-- Trading Robot Card -->
+                <div class="download-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h2 class="card-title">Trading Robot</h2>
                     </div>
-                   <h2 class="card-title">Indicator Tview</h2>
+                    
+                    <div class="card-price">$20.00 <span>/month</span></div>
+                    
+                    <ul class="features-list">
+                        <li>EA for MetaTrader 5</li>
+                        <li>Grid trading system</li>
+                        <li>Dynamic lot sizing</li>
+                        <li>Adaptive trading</li>
+                        <li>Smart hedge system</li>
+                        <li>Smart lock system</li>
+                        <li>+9 more advanced features</li>
+                    </ul>
+                    
+                    <div class="file-info">
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
+                    </div>
+                    
+                    <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
+                        <i class="fas fa-download"></i> Download EA & Settings
+                    </a>
+                    <p class="instructions">Extract to your MT5 Experts folder</p>
                 </div>
                 
-                <div class="card-price">$15.00 <span>/LifeTime</span></div>
-                
-                <ul class="features-list">
-                    <li>Order Block</li>
-                    <li>Volume Block</li>
-                    <li>Pre-installed TradingView</li>
-                </ul>
-                
-                <div class="file-info">
-                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_vps']; ?> • ZIP format
+                <!-- BTrader Tools Card -->
+                <div class="download-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                       <h2 class="card-title">Setting Tools</h2>
+                    </div>
+                    
+                    <div class="card-price">$00.00 <span>/month</span></div>
+                    
+                    <ul class="features-list">
+                        <li>3k-5K Balance</li>
+                        <li>30k-50K Balance</li>
+                        <li>300k-500K Balance</li>
+                    </ul>
+                    
+                    <div class="file-info">
+                        <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
+                    </div>
+                    
+                    <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
+                        <i class="fas fa-download"></i> Download Toolkit
+                    </a>
+                    <p class="instructions">Full trading toolkit with installation guide</p>
                 </div>
-                
-                <a href="<?php echo $download_links['trading_vps']; ?>" class="download-btn" download onclick="return confirmDownload('Trading VPS')">
-                    <i class="fas fa-download"></i> Download VPS Setup
-                </a>
-                <p class="instructions">Includes setup guide and configuration files</p>
             </div>
             
-            <!-- Trading Robot Card -->
-            <div class="download-card">
-                <div class="card-header">
-                    <div class="card-icon">
+            <footer>
+                <p>Need help with installation? Contact support Telegram @ZEAHONGMOD</p>
+                <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
+                
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="https://t.me/ZEAHONGMOD">Support Center</a>
+                    <a href="https://t.me/ZEAHONGMOD">Get License</a>
+                </div>
+                
+                <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
+            </footer>
+        </section>
+
+        <!-- Shop Section -->
+        <section class="section" id="shopSection">
+            <header class="dashboard-header">
+                <h1><i class="fas fa-shopping-cart"></i> Trading Tools Shop</h1>
+                <p class="dashboard-subtitle">Browse and purchase premium trading tools, expert advisors, and indicators to enhance your trading experience.</p>
+            </header>
+            
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <div class="shop-item-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="shop-item-title">Pro Indicators Pack</h3>
+                    <div class="shop-item-price">$49.99</div>
+                    <ul class="shop-item-features">
+                        <li>15+ Advanced Indicators</li>
+                        <li>Real-time Alerts</li>
+                        <li>Custom Timeframes</li>
+                        <li>Lifetime Updates</li>
+                        <li>24/7 Support</li>
+                    </ul>
+                    <button class="buy-btn" onclick="purchaseProduct('Pro Indicators Pack')">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </button>
+                </div>
+                
+                <div class="shop-item">
+                    <div class="shop-item-icon">
                         <i class="fas fa-robot"></i>
                     </div>
-                    <h2 class="card-title">Trading Robot</h2>
+                    <h3 class="shop-item-title">Gold Robot EA</h3>
+                    <div class="shop-item-price">$99.99</div>
+                    <ul class="shop-item-features">
+                        <li>Fully Automated Trading</li>
+                        <li>Risk Management System</li>
+                        <li>Multi-currency Support</li>
+                        <li>Backtesting Included</li>
+                        <li>1 Year Support</li>
+                    </ul>
+                    <button class="buy-btn" onclick="purchaseProduct('Gold Robot EA')">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </button>
                 </div>
                 
-                <div class="card-price">$20.00 <span>/month</span></div>
-                
-                <ul class="features-list">
-                    <li>EA for MetaTrader 5</li>
-                    <li>Grid trading system</li>
-                    <li>Dynamic lot sizing</li>
-                    <li>Adaptive trading</li>
-                    <li>Smart hedge system</li>
-                    <li>Smart lock system</li>
-                    <li>+9 more advanced features</li>
-                </ul>
-                
-                <div class="file-info">
-                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['trading_robot']; ?> • Includes settings files
-                </div>
-                
-                <a href="<?php echo $download_links['trading_robot']; ?>" class="download-btn" download onclick="return confirmDownload('Trading Robot')">
-                    <i class="fas fa-download"></i> Download EA & Settings
-                </a>
-                <p class="instructions">Extract to your MT5 Experts folder</p>
-            </div>
-            
-            <!-- BTrader Tools Card -->
-            <div class="download-card">
-                <div class="card-header">
-                    <div class="card-icon">
+                <div class="shop-item">
+                    <div class="shop-item-icon">
                         <i class="fas fa-tools"></i>
                     </div>
-                   <h2 class="card-title">Setting Tools</h2>
+                    <h3 class="shop-item-title">Complete Toolkit</h3>
+                    <div class="shop-item-price">$149.99</div>
+                    <ul class="shop-item-features">
+                        <li>All Indicators + EA</li>
+                        <li>Custom Scripts</li>
+                        <li>Templates & Layouts</li>
+                        <li>Video Tutorials</li>
+                        <li>Priority Support</li>
+                    </ul>
+                    <button class="buy-btn" onclick="purchaseProduct('Complete Toolkit')">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </button>
                 </div>
                 
-                <div class="card-price">$00.00 <span>/month</span></div>
-                
-                <ul class="features-list">
-                    <li>3k-5K Balance</li>
-                    <li>30k-50K Balance</li>
-                    <li>300k-500K Balance</li>
-                </ul>
-                
-                <div class="file-info">
-                    <i class="fas fa-file-archive"></i> File size: <?php echo $file_sizes['btrader_tools']; ?> • Complete package
+                <div class="shop-item">
+                    <div class="shop-item-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="shop-item-title">Master Course</h3>
+                    <div class="shop-item-price">$199.99</div>
+                    <ul class="shop-item-features">
+                        <li>20+ Hours Video Content</li>
+                        <li>Live Trading Sessions</li>
+                        <li>Private Community Access</li>
+                        <li>Personal Mentoring</li>
+                        <li>Certification</li>
+                    </ul>
+                    <button class="buy-btn" onclick="purchaseProduct('Master Course')">
+                        <i class="fas fa-shopping-cart"></i> Buy Now
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <section class="section" id="blogSection">
+            <header class="dashboard-header">
+                <h1><i class="fas fa-blog"></i> Trading Blog & News</h1>
+                <p class="dashboard-subtitle">Latest updates, trading strategies, market analysis, and educational content to help you succeed in trading.</p>
+            </header>
+            
+            <div class="blog-grid">
+                <div class="blog-post">
+                    <div class="blog-post-img">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="blog-post-content">
+                        <h3 class="blog-post-title">Market Analysis: Q4 2024 Trends</h3>
+                        <div class="blog-post-date">
+                            <i class="far fa-calendar"></i> December 15, 2024
+                        </div>
+                        <p class="blog-post-excerpt">
+                            Discover the key market trends and trading opportunities for the final quarter of 2024. Our expert analysis covers forex, crypto, and stock markets.
+                        </p>
+                        <a href="#" class="read-more" onclick="readBlogPost('Market Analysis')">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
                 
-                <a href="<?php echo $download_links['btrader_tools']; ?>" class="download-btn" download onclick="return confirmDownload('BTrader Tools')">
-                    <i class="fas fa-download"></i> Download Toolkit
-                </a>
-                <p class="instructions">Full trading toolkit with installation guide</p>
+                <div class="blog-post">
+                    <div class="blog-post-img">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="blog-post-content">
+                        <h3 class="blog-post-title">How to Optimize Your EA Settings</h3>
+                        <div class="blog-post-date">
+                            <i class="far fa-calendar"></i> December 10, 2024
+                        </div>
+                        <p class="blog-post-excerpt">
+                            Learn the best practices for configuring your Expert Advisor for maximum profitability and minimal risk in different market conditions.
+                        </p>
+                        <a href="#" class="read-more" onclick="readBlogPost('EA Optimization')">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="blog-post">
+                    <div class="blog-post-img">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="blog-post-content">
+                        <h3 class="blog-post-title">Risk Management Strategies for 2025</h3>
+                        <div class="blog-post-date">
+                            <i class="far fa-calendar"></i> December 5, 2024
+                        </div>
+                        <p class="blog-post-excerpt">
+                            Essential risk management techniques every trader should implement to protect their capital and ensure long-term success in trading.
+                        </p>
+                        <a href="#" class="read-more" onclick="readBlogPost('Risk Management')">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="blog-post">
+                    <div class="blog-post-img">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="blog-post-content">
+                        <h3 class="blog-post-title">Mobile Trading: Tips & Tricks</h3>
+                        <div class="blog-post-date">
+                            <i class="far fa-calendar"></i> November 28, 2024
+                        </div>
+                        <p class="blog-post-excerpt">
+                            Master mobile trading with our comprehensive guide. Learn how to trade effectively from anywhere using your smartphone or tablet.
+                        </p>
+                        <a href="#" class="read-more" onclick="readBlogPost('Mobile Trading')">
+                            Read More <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <footer>
-            <p>Need help with installation? Contact support Telegram @ZEAHONGMOD</p>
-            <p>All downloads are for authorized customers only. Unauthorized distribution is prohibited.</p>
+        </section>
+
+        <!-- License Section -->
+        <section class="section" id="licenseSection">
+            <header class="dashboard-header">
+                <h1><i class="fas fa-key"></i> My License Management</h1>
+                <p class="dashboard-subtitle">Manage your licenses, check activation status, and get support for your purchased products.</p>
+            </header>
             
-            <div class="footer-links">
-                <a href="#">Terms of Service</a>
-                <a href="#">Privacy Policy</a>
-                <a href="https://t.me/ZEAHONGMOD">Support Center</a>
-                <a href="https://t.me/ZEAHONGMOD">Get License</a>
+            <div class="license-section">
+                <div class="license-card">
+                    <div class="license-header">
+                        <div class="license-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <h2 class="license-title">Your MT5 EA License Key</h2>
+                    </div>
+                    
+                    <div class="license-key-box">
+                        <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
+                        
+                        <div class="license-key-display" id="licenseKeyDisplayMain">
+                            <i class="fas fa-spinner fa-spin"></i> Loading license key...
+                        </div>
+                        
+                        <button class="copy-btn" onclick="copyLicenseKey()" id="copyButtonMain">
+                            <i class="fas fa-copy"></i> Copy License Key
+                        </button>
+                        
+                        <div class="license-info">
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div class="info-value active" id="licenseStatusMain">Loading...</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Expires</div>
+                                <div class="info-value" id="licenseExpiryMain">Loading...</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Device</div>
+                                <div class="info-value" id="deviceStatusMain">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="license-actions">
+                            <button class="license-action-btn activate" onclick="activateLicense()">
+                                <i class="fas fa-play-circle"></i> Activate License
+                            </button>
+                            <button class="license-action-btn renew" onclick="renewLicense()">
+                                <i class="fas fa-sync-alt"></i> Renew License
+                            </button>
+                            <button class="license-action-btn transfer" onclick="transferLicense()">
+                                <i class="fas fa-exchange-alt"></i> Transfer License
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 25px; padding: 20px; background: rgba(75, 181, 67, 0.1); border-radius: 10px; border-left: 4px solid #4bb543; text-align: left;">
+                        <h3 style="color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-info-circle"></i> How to Use Your License:
+                        </h3>
+                        <ol style="color: #a0c8e0; padding-left: 20px; margin-top: 10px;">
+                            <li style="margin-bottom: 8px;">Copy your license key above</li>
+                            <li style="margin-bottom: 8px;">Open MetaTrader 5 and navigate to your EA settings</li>
+                            <li style="margin-bottom: 8px;">Paste the license key in the designated field</li>
+                            <li style="margin-bottom: 8px;">Save settings and restart your EA</li>
+                            <li>Your EA will be activated for one device only</li>
+                        </ol>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding: 25px; background: rgba(52, 152, 219, 0.1); border-radius: 10px; border-left: 4px solid #3498db;">
+                        <h3 style="color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-headset"></i> License Support
+                        </h3>
+                        <p style="color: #a0c8e0; margin-bottom: 15px;">
+                            Need help with your license? Contact our support team for assistance:
+                        </p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button class="btn" onclick="contactSupport()" style="max-width: 200px;">
+                                <i class="fas fa-envelope"></i> Email Support
+                            </button>
+                            <button class="btn btn-secondary" onclick="window.open('https://t.me/ZEAHONGMOD', '_blank')" style="max-width: 200px;">
+                                <i class="fab fa-telegram"></i> Telegram Support
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Purchase License Section -->
+                    <div style="margin-top: 30px; padding: 25px; background: rgba(155, 89, 182, 0.1); border-radius: 10px; border-left: 4px solid #9b59b6;">
+                        <h3 style="color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-shopping-cart"></i> Purchase New License
+                        </h3>
+                        <p style="color: #a0c8e0; margin-bottom: 15px;">
+                            Don't have a license yet? Purchase one to unlock all features:
+                        </p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button class="btn" onclick="purchaseLicense('basic')" style="max-width: 200px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+                                <i class="fas fa-star"></i> Basic License
+                            </button>
+                            <button class="btn" onclick="purchaseLicense('pro')" style="max-width: 200px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+                                <i class="fas fa-crown"></i> Pro License
+                            </button>
+                            <button class="btn" onclick="purchaseLicense('ultimate')" style="max-width: 200px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                                <i class="fas fa-rocket"></i> Ultimate License
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <p style="margin-top: 20px;">&copy; <?php echo date('Y'); ?> Trading Tools Download Center. All rights reserved.</p>
-        </footer>
+        </section>
     </div>
 
     <!-- Firebase SDK -->
@@ -1055,15 +1954,16 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         // DOM Elements
         const loginPage = document.getElementById('loginPage');
-        const dashboard = document.getElementById('dashboard');
+        const mainNav = document.getElementById('mainNav');
+        const mainContent = document.getElementById('mainContent');
         const welcomeUserName = document.getElementById('welcomeUserName');
         const userEmailDisplay = document.getElementById('userEmailDisplay');
         const userAvatar = document.getElementById('userAvatar');
-        const licenseKeyDisplay = document.getElementById('licenseKeyDisplay');
-        const licenseStatus = document.getElementById('licenseStatus');
-        const licenseExpiry = document.getElementById('licenseExpiry');
-        const deviceStatus = document.getElementById('deviceStatus');
-        const copyButton = document.getElementById('copyButton');
+        const navAuth = document.getElementById('navAuth');
+        const navMenu = document.getElementById('navMenu');
+
+        // Global variable for user license
+        window.userLicenseData = null;
 
         // Initialize
         init();
@@ -1072,6 +1972,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             try {
                 // Setup auth state listener
                 setupAuthListener();
+                
+                // Setup password strength indicator
+                setupPasswordStrength();
                 
                 // Hide info message after 2 seconds
                 setTimeout(() => {
@@ -1085,13 +1988,42 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             }
         }
 
+        // Setup password strength indicator
+        function setupPasswordStrength() {
+            const passwordInput = document.getElementById('signupPassword');
+            const strengthBar = document.getElementById('passwordStrength');
+            
+            if (passwordInput && strengthBar) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    let strength = 0;
+                    
+                    if (password.length >= 6) strength += 25;
+                    if (/[A-Z]/.test(password)) strength += 25;
+                    if (/[0-9]/.test(password)) strength += 25;
+                    if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+                    
+                    strengthBar.style.width = strength + '%';
+                    
+                    if (strength < 50) {
+                        strengthBar.style.background = '#e74c3c';
+                    } else if (strength < 75) {
+                        strengthBar.style.background = '#f39c12';
+                    } else {
+                        strengthBar.style.background = '#2ecc71';
+                    }
+                });
+            }
+        }
+
         // Setup authentication state listener
         function setupAuthListener() {
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     // User is signed in
-                    showDashboard(user);
+                    showMainApp(user);
                     await updateUserLicenseInfo(user.email);
+                    updateNavUserInfo(user);
                 } else {
                     // User is signed out
                     showLoginPage();
@@ -1102,10 +2034,11 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             });
         }
 
-        // Show dashboard with user info
-        function showDashboard(user) {
+        // Show main app with navigation
+        function showMainApp(user) {
             loginPage.style.display = 'none';
-            dashboard.style.display = 'block';
+            mainNav.style.display = 'block';
+            mainContent.style.display = 'block';
             
             // Update user info
             const userDisplayName = user.displayName || user.email.split('@')[0];
@@ -1116,91 +2049,260 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             userAvatar.textContent = userInitial;
             
             // Update page title
-            document.title = `Dashboard - ${userDisplayName}`;
+            document.title = `Zeahong Trading - Dashboard`;
+            
+            // Show home section by default
+            showSection('home');
+        }
+
+        // Update navigation user info
+        function updateNavUserInfo(user) {
+            const userDisplayName = user.displayName || user.email.split('@')[0];
+            const userInitial = userDisplayName.charAt(0).toUpperCase();
+            
+            navAuth.innerHTML = `
+                <div class="nav-user">
+                    <div class="user-avatar-small">${userInitial}</div>
+                    <div>
+                        <div style="color: white; font-weight: 600;">${userDisplayName}</div>
+                        <div class="user-email">${user.email}</div>
+                    </div>
+                </div>
+                <button class="nav-logout" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            `;
         }
 
         // Show login page
         function showLoginPage() {
-            dashboard.style.display = 'none';
+            mainNav.style.display = 'none';
+            mainContent.style.display = 'none';
             loginPage.style.display = 'flex';
             document.title = 'Zeahong Trading - Login';
         }
 
-       // Update user license information
-async function updateUserLicenseInfo(userEmail) {
-    try {
-        console.log('Fetching license for:', userEmail);
-        
-        const formData = new URLSearchParams();
-        formData.append('action', 'get_license');
-        formData.append('email', userEmail);
-        
-        const response = await fetch('login.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: formData
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.text();
-        console.log('License response:', data);
-        
-        if (data === 'NOT_FOUND' || data === 'INVALID' || !data) {
-            // No license found
-            licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
-            licenseKeyDisplay.style.fontSize = '1.2rem';
-            licenseStatus.textContent = 'No License';
-            licenseStatus.className = 'info-value expired';
-            licenseExpiry.textContent = 'N/A';
-            deviceStatus.textContent = 'N/A';
-            copyButton.disabled = true;
-            copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
-            copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+        // Show/Hide sections
+        window.showSection = function(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
             
-        } else if (data.includes('|')) {
-            // Parse license info
-            const parts = data.split('|');
-            console.log('Parsed parts:', parts);
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
             
-            if (parts.length >= 4) {
-                const licenseKey = parts[0];
-                const status = parts[1];
-                const expiry = parts[2];
-                const device = parts[3];
-                
-                // Display license
-                licenseKeyDisplay.textContent = licenseKey;
-                licenseKeyDisplay.style.color = '#4bb543';
-                licenseKeyDisplay.style.fontSize = '1.8rem';
-                licenseStatus.textContent = status;
-                licenseStatus.className = status === 'active' ? 'info-value active' : 'info-value expired';
-                licenseExpiry.textContent = expiry;
-                deviceStatus.textContent = device || 'Not Activated';
-                
-                // Enable copy button
-                copyButton.disabled = false;
-                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
-                copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
-                
-                // Store for copying
-                window.userLicenseKey = licenseKey;
+            // Show selected section
+            const section = document.getElementById(sectionId + 'Section');
+            if (section) {
+                section.classList.add('active');
             }
-        } else {
-            throw new Error('Unexpected response format');
-        }
-        
-    } catch (error) {
-        console.error('Error fetching license info:', error);
-        licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
-    }
-}
+            
+            // Update active nav link
+            const navLink = document.querySelector(`[onclick="showSection('${sectionId}')"]`);
+            if (navLink) {
+                navLink.classList.add('active');
+            }
+            
+            // Update page title
+            const sectionNames = {
+                'home': 'Home',
+                'shop': 'Shop',
+                'blog': 'Blog',
+                'license': 'My License'
+            };
+            document.title = `Zeahong Trading - ${sectionNames[sectionId]}`;
+            
+            // Close mobile menu if open
+            if (window.innerWidth <= 768) {
+                navMenu.classList.remove('active');
+            }
+            
+            // Refresh license info when license section is shown
+            if (sectionId === 'license' && auth.currentUser) {
+                updateUserLicenseInfo(auth.currentUser.email);
+            }
+        };
 
-        // Show/Hide Forms
+        // Toggle mobile menu
+        window.toggleMobileMenu = function() {
+            navMenu.classList.toggle('active');
+        };
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                const isClickInsideNav = mainNav.contains(event.target);
+                const isMobileMenuBtn = event.target.closest('.mobile-menu-btn');
+                
+                if (!isClickInsideNav && !isMobileMenuBtn) {
+                    navMenu.classList.remove('active');
+                }
+            }
+        });
+
+        // Update user license information from SQLite database
+        async function updateUserLicenseInfo(userEmail) {
+            try {
+                console.log('Fetching license for:', userEmail);
+                
+                const formData = new URLSearchParams();
+                formData.append('action', 'get_license');
+                formData.append('email', userEmail);
+                
+                // Send request to same page (license check is handled in PHP at the top)
+                const response = await fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.text();
+                console.log('License response from server:', data);
+                
+                // Store license data globally
+                window.userLicenseData = data;
+                
+                // Update both license displays
+                updateLicenseDisplay(data, 'licenseKeyDisplay', 'licenseStatus', 'licenseExpiry', 'deviceStatus', 'copyButton');
+                updateLicenseDisplay(data, 'licenseKeyDisplayMain', 'licenseStatusMain', 'licenseExpiryMain', 'deviceStatusMain', 'copyButtonMain');
+                
+            } catch (error) {
+                console.error('Error fetching license info:', error);
+                const errorHtml = '<span style="color: #e74c3c;">Error loading license. Please try again.</span>';
+                document.getElementById('licenseKeyDisplay').innerHTML = errorHtml;
+                document.getElementById('licenseKeyDisplayMain').innerHTML = errorHtml;
+                
+                // Update status displays
+                document.getElementById('licenseStatus').textContent = 'Error';
+                document.getElementById('licenseStatus').className = 'info-value expired';
+                document.getElementById('licenseExpiry').textContent = 'N/A';
+                document.getElementById('deviceStatus').textContent = 'N/A';
+                
+                document.getElementById('licenseStatusMain').textContent = 'Error';
+                document.getElementById('licenseStatusMain').className = 'info-value expired';
+                document.getElementById('licenseExpiryMain').textContent = 'N/A';
+                document.getElementById('deviceStatusMain').textContent = 'N/A';
+            }
+        }
+
+        function updateLicenseDisplay(data, keyDisplayId, statusId, expiryId, deviceId, copyBtnId) {
+            const keyDisplay = document.getElementById(keyDisplayId);
+            const statusDisplay = document.getElementById(statusId);
+            const expiryDisplay = document.getElementById(expiryId);
+            const deviceDisplay = document.getElementById(deviceId);
+            const copyBtn = document.getElementById(copyBtnId);
+            
+            if (!data) {
+                // No data received
+                keyDisplay.innerHTML = '<span style="color: #e74c3c;">Connection error</span>';
+                keyDisplay.style.fontSize = '1.2rem';
+                statusDisplay.textContent = 'Error';
+                statusDisplay.className = 'info-value expired';
+                expiryDisplay.textContent = 'N/A';
+                deviceDisplay.textContent = 'N/A';
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                    copyBtn.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyBtn.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                }
+                
+                window.userLicenseKey = null;
+                
+            } else if (data.startsWith('NOT_FOUND')) {
+                // No license found
+                keyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+                keyDisplay.style.fontSize = '1.2rem';
+                statusDisplay.textContent = 'No License';
+                statusDisplay.className = 'info-value expired';
+                expiryDisplay.textContent = 'N/A';
+                deviceDisplay.textContent = 'N/A';
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                    copyBtn.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyBtn.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                }
+                
+                window.userLicenseKey = null;
+                
+            } else if (data.startsWith('ERROR')) {
+                // Error in license retrieval
+                const errorMsg = data.split('|')[1] || 'Unknown error';
+                keyDisplay.innerHTML = `<span style="color: #e74c3c;">Error: ${errorMsg}</span>`;
+                keyDisplay.style.fontSize = '1.2rem';
+                statusDisplay.textContent = 'Error';
+                statusDisplay.className = 'info-value expired';
+                expiryDisplay.textContent = 'N/A';
+                deviceDisplay.textContent = 'N/A';
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                    copyBtn.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyBtn.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                }
+                
+                window.userLicenseKey = null;
+                
+            } else if (data.includes('|')) {
+                // Parse license info
+                const parts = data.split('|');
+                console.log('Parsed license parts:', parts);
+                
+                if (parts.length >= 4) {
+                    const licenseKey = parts[0];
+                    const status = parts[1];
+                    const expiry = parts[2];
+                    const device = parts[3];
+                    
+                    // Display license
+                    keyDisplay.textContent = licenseKey;
+                    keyDisplay.style.color = '#4bb543';
+                    keyDisplay.style.fontSize = '1.8rem';
+                    
+                    statusDisplay.textContent = status;
+                    
+                    // Set appropriate status class
+                    if (status === 'active') {
+                        statusDisplay.className = 'info-value active';
+                    } else if (status === 'expired') {
+                        statusDisplay.className = 'info-value expired';
+                    } else if (status === 'pending') {
+                        statusDisplay.className = 'info-value pending';
+                    } else {
+                        statusDisplay.className = 'info-value expired';
+                    }
+                    
+                    expiryDisplay.textContent = expiry;
+                    deviceDisplay.textContent = device || 'Not Activated';
+                    
+                    // Enable copy button
+                    if (copyBtn) {
+                        copyBtn.disabled = false;
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                        copyBtn.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                    }
+                    
+                    // Store for copying
+                    window.userLicenseKey = licenseKey;
+                } else {
+                    throw new Error('Invalid license data format');
+                }
+            } else {
+                throw new Error('Unexpected license response format');
+            }
+        }
+
+        // Show/Hide Forms with animation
         window.showSignup = function() {
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
@@ -1210,6 +2312,11 @@ async function updateUserLicenseInfo(userEmail) {
             signupForm.style.display = 'block';
             forgotPasswordForm.style.display = 'none';
             clearMessages();
+            
+            // Focus on first input
+            setTimeout(() => {
+                document.getElementById('signupName').focus();
+            }, 100);
         };
 
         window.showLogin = function() {
@@ -1221,6 +2328,11 @@ async function updateUserLicenseInfo(userEmail) {
             loginForm.style.display = 'block';
             forgotPasswordForm.style.display = 'none';
             clearMessages();
+            
+            // Focus on email input
+            setTimeout(() => {
+                document.getElementById('loginEmail').focus();
+            }, 100);
         };
 
         window.showForgotPassword = function() {
@@ -1232,6 +2344,11 @@ async function updateUserLicenseInfo(userEmail) {
             signupForm.style.display = 'none';
             forgotPasswordForm.style.display = 'block';
             clearMessages();
+            
+            // Focus on email input
+            setTimeout(() => {
+                document.getElementById('resetEmail').focus();
+            }, 100);
         };
 
         // Clear messages
@@ -1439,14 +2556,20 @@ async function updateUserLicenseInfo(userEmail) {
             }
             
             navigator.clipboard.writeText(window.userLicenseKey).then(() => {
-                const originalText = copyButton.innerHTML;
-                copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                copyButton.style.background = 'linear-gradient(135deg, #27ae60 0%, #219653 100%)';
-                
-                setTimeout(() => {
-                    copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
-                    copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
-                }, 2000);
+                // Update both copy buttons
+                const copyButtons = [document.getElementById('copyButton'), document.getElementById('copyButtonMain')];
+                copyButtons.forEach(button => {
+                    if (button) {
+                        const originalText = button.innerHTML;
+                        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        button.style.background = 'linear-gradient(135deg, #27ae60 0%, #219653 100%)';
+                        
+                        setTimeout(() => {
+                            button.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                            button.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                        }, 2000);
+                    }
+                });
                 
                 showMessage('success', 'License key copied to clipboard!');
             }).catch(err => {
@@ -1457,7 +2580,83 @@ async function updateUserLicenseInfo(userEmail) {
 
         // Download confirmation
         window.confirmDownload = function(productName) {
-            return confirm(`You are about to download: ${productName}\n\nMake sure you have an active subscription to use this product.`);
+            if (!window.userLicenseKey || window.userLicenseKey === 'No license assigned') {
+                alert('You need a valid license to download this product. Please get a license first.');
+                window.open('https://t.me/ZEAHONGMOD', '_blank');
+                return false;
+            }
+            
+            if (!confirm(`You are about to download: ${productName}\n\nMake sure you have an active subscription to use this product.`)) {
+                return false;
+            }
+            
+            return true;
+        };
+
+        // Shop functions
+        window.purchaseProduct = function(productName) {
+            alert(`Thank you for your interest in ${productName}!\n\nPlease contact @ZEAHONGMOD on Telegram to complete your purchase.`);
+        };
+
+        // Blog functions
+        window.readBlogPost = function(postTitle) {
+            alert(`"${postTitle}" - Blog Post\n\nThis feature is coming soon! Check back later to read the full article.`);
+        };
+
+        // Support functions
+        window.contactSupport = function() {
+            alert('Please email your license issues to: support@zeahongtrading.com\n\nWe will respond within 24 hours.');
+        };
+
+        // License Management Functions
+        window.activateLicense = function() {
+            if (!window.userLicenseKey) {
+                alert('You need a license to activate. Please purchase a license first.');
+                return;
+            }
+            
+            const deviceId = prompt('Enter your device ID (usually your MT5 account number or PC ID):');
+            if (deviceId) {
+                alert(`License activation request sent for device: ${deviceId}\n\nPlease wait for admin approval.`);
+                // Here you would normally send this to your server
+            }
+        };
+
+        window.renewLicense = function() {
+            if (!window.userLicenseKey) {
+                alert('You need a license to renew. Please purchase a license first.');
+                return;
+            }
+            
+            alert('License renewal requested!\n\nPlease contact @ZEAHONGMOD on Telegram to renew your license.');
+        };
+
+        window.transferLicense = function() {
+            if (!window.userLicenseKey) {
+                alert('You need a license to transfer. Please purchase a license first.');
+                return;
+            }
+            
+            const newEmail = prompt('Enter the email address to transfer the license to:');
+            if (newEmail) {
+                alert(`License transfer request sent to: ${newEmail}\n\nPlease wait for admin approval.`);
+            }
+        };
+
+        window.purchaseLicense = function(licenseType) {
+            const prices = {
+                'basic': '$49.99',
+                'pro': '$99.99',
+                'ultimate': '$199.99'
+            };
+            
+            const features = {
+                'basic': 'Basic features, 1 device, 1 year',
+                'pro': 'All features, 2 devices, 2 years',
+                'ultimate': 'All features + priority support, 5 devices, lifetime'
+            };
+            
+            alert(`Purchase ${licenseType.toUpperCase()} License\n\nPrice: ${prices[licenseType]}\nFeatures: ${features[licenseType]}\n\nPlease contact @ZEAHONGMOD on Telegram to complete your purchase.`);
         };
     </script>
 </body>
