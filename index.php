@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 
 // Download URLs for each product
@@ -38,109 +38,57 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: #e0e0e0;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* Login Page Styles - Modern Gradient Background */
+        /* Login Page Styles - Centered */
         .login-page {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             width: 100%;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-page::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
-            background-size: cover;
         }
 
         .container {
             width: 100%;
-            max-width: 450px;
+            max-width: 400px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
             margin: 0 auto;
-            position: relative;
-            z-index: 1;
-            animation: slideUp 0.6s ease;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Header - Modern Design */
+        /* Header - Centered */
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
-            padding: 40px 30px;
+            padding: 30px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
         }
 
         .logo {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            position: relative;
-            z-index: 1;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            font-size: 2.5rem;
+            margin-bottom: 10px;
         }
 
         .header h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
+            font-size: 1.8rem;
+            font-weight: 600;
         }
 
         .header p {
             opacity: 0.9;
-            font-size: 1rem;
-            position: relative;
-            z-index: 1;
+            margin-top: 5px;
         }
 
-        /* Content - Modern Design */
+        /* Content - Centered */
         .content {
-            padding: 40px 35px;
+            padding: 40px 30px;
             text-align: center;
         }
 
@@ -150,35 +98,22 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         }
 
         .form-title {
-            color: #2c3e50;
-            font-size: 1.8rem;
-            margin-bottom: 30px;
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
             text-align: center;
-            font-weight: 700;
-            position: relative;
-        }
-
-        .form-title::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            margin: 10px auto 0;
-            border-radius: 2px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 10px;
-            color: #2c3e50;
-            font-weight: 600;
-            font-size: 15px;
-            transition: color 0.3s;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
         }
 
         .input-group {
@@ -187,105 +122,77 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         .input-group i {
             position: absolute;
-            left: 18px;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
-            color: #6a11cb;
-            font-size: 18px;
-            transition: all 0.3s;
+            color: #666;
         }
 
         .input-group input {
             width: 100%;
-            padding: 16px 20px 16px 55px;
-            border: 2px solid #e1e8ed;
-            border-radius: 12px;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #e1e5ee;
+            border-radius: 10px;
             font-size: 16px;
             transition: all 0.3s;
-            background: white;
-            color: #333;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #6a11cb;
-            box-shadow: 0 0 0 4px rgba(106, 17, 203, 0.15);
-        }
-
-        .input-group input:focus + i {
-            color: #2575fc;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
         }
 
         .btn {
             width: 100%;
-            padding: 18px;
+            padding: 16px;
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 17px;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
             margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            letter-spacing: 0.5px;
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(106, 17, 203, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
         }
 
         .btn-secondary {
             background: transparent;
             color: #6a11cb;
             border: 2px solid #6a11cb;
-            margin-top: 15px;
         }
 
         .btn-secondary:hover {
             background: rgba(106, 17, 203, 0.1);
-            box-shadow: 0 10px 20px rgba(106, 17, 203, 0.2);
         }
 
         .toggle-link {
             text-align: center;
-            margin-top: 30px;
+            margin-top: 25px;
             color: #666;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .toggle-link a {
             color: #6a11cb;
             text-decoration: none;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            padding: 5px 10px;
-            border-radius: 6px;
-        }
-
-        .toggle-link a:hover {
-            background: rgba(106, 17, 203, 0.1);
-            text-decoration: underline;
         }
 
         .message {
-            padding: 18px;
-            border-radius: 12px;
-            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
             display: none;
             animation: slideIn 0.3s ease;
-            text-align: left;
-            border-left: 5px solid;
+            text-align: center;
         }
 
         @keyframes slideIn {
@@ -300,29 +207,29 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         }
 
         .message.error {
-            background: rgba(231, 76, 60, 0.1);
+            background: #fee;
             color: #e74c3c;
-            border-left-color: #e74c3c;
+            border-left: 4px solid #e74c3c;
         }
 
         .message.success {
-            background: rgba(39, 174, 96, 0.1);
+            background: #efc;
             color: #27ae60;
-            border-left-color: #27ae60;
+            border-left: 4px solid #27ae60;
         }
 
         .message.info {
-            background: rgba(52, 152, 219, 0.1);
-            color: #3498db;
-            border-left-color: #3498db;
+            background: #e3f2fd;
+            color: #2196f3;
+            border-left: 4px solid #2196f3;
         }
 
         .loading {
             display: inline-block;
-            width: 22px;
-            height: 22px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6a11cb;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -334,69 +241,30 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         .forgot-password {
             text-align: right;
-            margin-top: 12px;
+            margin-top: 10px;
         }
 
         .forgot-password a {
-            color: #6a11cb;
+            color: #666;
             font-size: 14px;
             text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
         }
 
         .admin-note {
             text-align: center;
-            margin-top: 25px;
-            padding: 15px;
+            margin-top: 20px;
+            padding: 10px;
             background: #f8f9fa;
-            border-radius: 10px;
-            font-size: 13px;
+            border-radius: 8px;
+            font-size: 12px;
             color: #666;
-            border-left: 4px solid #6a11cb;
         }
 
         .powered-by {
             text-align: center;
-            margin-top: 35px;
+            margin-top: 30px;
             color: #999;
-            font-size: 13px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .powered-by span {
-            color: #6a11cb;
-            font-weight: 600;
-        }
-
-        /* Form Switch Animation */
-        .form-container {
-            transition: transform 0.4s ease, opacity 0.4s ease;
-        }
-
-        .form-container.hidden {
-            display: none;
-        }
-
-        /* Password Strength Indicator */
-        .password-strength {
-            height: 4px;
-            background: #eee;
-            border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .strength-bar {
-            height: 100%;
-            width: 0%;
-            background: #e74c3c;
-            transition: width 0.3s, background 0.3s;
+            font-size: 12px;
         }
 
         /* Dashboard - Centered Layout */
@@ -975,10 +843,6 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                         </button>
                     </form>
                 </div>
-
-                <div class="powered-by">
-                    Powered by <span>Firebase Authentication</span>
-                </div>
             </div>
         </div>
     </div>
@@ -1019,7 +883,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
                     <a href="https://t.me/ZEAHONGMOD">Get License</a>
                     <div class="license-key-display" id="licenseKeyDisplay">
-                        ZEAHONG-ABCD-EFGH-IJKL-MNOP
+                        <i class="fas fa-spinner fa-spin"></i> Loading license key...
                     </div>
                     
                     <button class="copy-btn" onclick="copyLicenseKey()" id="copyButton">
@@ -1227,6 +1091,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 if (user) {
                     // User is signed in
                     showDashboard(user);
+                    await updateUserLicenseInfo(user.email);
                 } else {
                     // User is signed out
                     showLoginPage();
@@ -1260,6 +1125,80 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             loginPage.style.display = 'flex';
             document.title = 'Zeahong Trading - Login';
         }
+
+       // Update user license information
+async function updateUserLicenseInfo(userEmail) {
+    try {
+        console.log('Fetching license for:', userEmail);
+        
+        const formData = new URLSearchParams();
+        formData.append('action', 'get_license');
+        formData.append('email', userEmail);
+        
+        const response = await fetch('login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.text();
+        console.log('License response:', data);
+        
+        if (data === 'NOT_FOUND' || data === 'INVALID' || !data) {
+            // No license found
+            licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+            licenseKeyDisplay.style.fontSize = '1.2rem';
+            licenseStatus.textContent = 'No License';
+            licenseStatus.className = 'info-value expired';
+            licenseExpiry.textContent = 'N/A';
+            deviceStatus.textContent = 'N/A';
+            copyButton.disabled = true;
+            copyButton.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+            copyButton.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+            
+        } else if (data.includes('|')) {
+            // Parse license info
+            const parts = data.split('|');
+            console.log('Parsed parts:', parts);
+            
+            if (parts.length >= 4) {
+                const licenseKey = parts[0];
+                const status = parts[1];
+                const expiry = parts[2];
+                const device = parts[3];
+                
+                // Display license
+                licenseKeyDisplay.textContent = licenseKey;
+                licenseKeyDisplay.style.color = '#4bb543';
+                licenseKeyDisplay.style.fontSize = '1.8rem';
+                licenseStatus.textContent = status;
+                licenseStatus.className = status === 'active' ? 'info-value active' : 'info-value expired';
+                licenseExpiry.textContent = expiry;
+                deviceStatus.textContent = device || 'Not Activated';
+                
+                // Enable copy button
+                copyButton.disabled = false;
+                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                copyButton.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                
+                // Store for copying
+                window.userLicenseKey = licenseKey;
+            }
+        } else {
+            throw new Error('Unexpected response format');
+        }
+        
+    } catch (error) {
+        console.error('Error fetching license info:', error);
+        licenseKeyDisplay.innerHTML = '<span style="color: #e74c3c;">Error: ' + error.message + '</span>';
+    }
+}
 
         // Show/Hide Forms
         window.showSignup = function() {
@@ -1447,7 +1386,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 signupBtn.innerHTML = originalText;
                 signupBtn.disabled = false;
             }
-        };
+        });
 
         // Forgot password form submission
         document.getElementById('forgotPasswordFormElement').addEventListener('submit', async (e) => {
@@ -1494,9 +1433,12 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 
         // Copy license key function
         window.copyLicenseKey = function() {
-            const licenseKey = document.getElementById('licenseKeyDisplay').textContent;
+            if (!window.userLicenseKey) {
+                showMessage('error', 'No license key available to copy');
+                return;
+            }
             
-            navigator.clipboard.writeText(licenseKey).then(() => {
+            navigator.clipboard.writeText(window.userLicenseKey).then(() => {
                 const originalText = copyButton.innerHTML;
                 copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
                 copyButton.style.background = 'linear-gradient(135deg, #27ae60 0%, #219653 100%)';
