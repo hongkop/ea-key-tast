@@ -3,7 +3,7 @@ session_start();
 
 // Download URLs for each product
 $download_links = [
-    'trading_vps' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
+    'trading_vps' => 'https://firebasestorage.googleapis.com/v0/b/zeahong-5c2a1.appspot.com/o/(1)%204T8%20EA%20Scalping.ex5?alt=media&token=705dd470-509e-473b-b91a-c097577ca2f4',
     'trading_robot' => 'https://zeahong.up.railway.app/4T8_EA_Scalping.zip',
     'btrader_tools' => 'https://zeahong.up.railway.app/500kbalance.set'
 ];
