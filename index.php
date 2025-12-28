@@ -15,103 +15,91 @@ $file_sizes = [
     'btrader_tools' => '62 MB'
 ];
 
-// Check if user is logged in via Firebase
-$isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
+// SQLite database connection for license management
+define('DB_FILE', 'licenses.db');
 
-// Database connection for license management
-$host = 'localhost';
-$dbname = 'zeahong_trading';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    // If database connection fails, continue without it
-    $pdo = null;
-}
-
-// Function to get user license
-function getUserLicense($email, $pdo) {
-    if (!$pdo) {
-        return generateDemoLicense($email);
+// Function to get user license from SQLite database
+function getUserLicense($email) {
+    if (!file_exists(DB_FILE)) {
+        return 'NOT_FOUND|No license database found|N/A|Not Activated';
     }
     
     try {
-        $stmt = $pdo->prepare("SELECT * FROM licenses WHERE user_email = :email ORDER BY created_at DESC LIMIT 1");
-        $stmt->execute([':email' => $email]);
-        $license = $stmt->fetch(PDO::FETCH_ASSOC);
+        $db = new SQLite3(DB_FILE);
+        
+        // Check if licenses table exists
+        $tableCheck = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='licenses'");
+        if (!$tableCheck->fetchArray()) {
+            $db->close();
+            return 'NOT_FOUND|Database not initialized|N/A|Not Activated';
+        }
+        
+        // Get user's license
+        $stmt = $db->prepare("SELECT * FROM licenses WHERE user_email = :email ORDER BY created_at DESC LIMIT 1");
+        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        $license = $result->fetchArray(SQLITE3_ASSOC);
         
         if ($license) {
+            $license_key = $license['license_key'];
             $status = $license['status'];
-            $expiry_date = $license['expiry_date'];
+            $expires_at = $license['expires_at'];
             $device_id = $license['device_id'] ?: 'Not Activated';
+            $customer_type = $license['customer_type'] ?: 'User';
             
-            return $license['license_key'] . '|' . $status . '|' . $expiry_date . '|' . $device_id;
-        } else {
-            // Check if user has purchased any product
-            $stmt = $pdo->prepare("SELECT * FROM purchases WHERE user_email = :email AND status = 'completed'");
-            $stmt->execute([':email' => $email]);
-            $purchase = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($purchase) {
-                // Generate license for purchase
-                $licenseKey = generateLicenseKey();
-                $expiryDate = date('Y-m-d', strtotime('+1 year'));
-                
-                // Save to database
-                $stmt = $pdo->prepare("INSERT INTO licenses (user_email, license_key, status, expiry_date, product_id) VALUES (:email, :key, 'active', :expiry, :product)");
-                $stmt->execute([
-                    ':email' => $email,
-                    ':key' => $licenseKey,
-                    ':expiry' => $expiryDate,
-                    ':product' => $purchase['product_id']
-                ]);
-                
-                return $licenseKey . '|active|' . $expiryDate . '|Not Activated';
+            // Check if license is expired
+            if ($status === 'active' && $expires_at) {
+                $expires_date = new DateTime($expires_at);
+                $now = new DateTime();
+                if ($now > $expires_date) {
+                    $status = 'expired';
+                    // Update status in database
+                    $update = $db->prepare("UPDATE licenses SET status = 'expired', last_updated = datetime('now') WHERE license_key = :key");
+                    $update->bindValue(':key', $license_key, SQLITE3_TEXT);
+                    $update->execute();
+                }
             }
+            
+            $db->close();
+            return $license_key . '|' . $status . '|' . date('Y-m-d', strtotime($expires_at)) . '|' . $device_id;
+        } else {
+            // Check if user has any license (case insensitive)
+            $stmt = $db->prepare("SELECT * FROM licenses WHERE LOWER(user_email) = LOWER(:email) ORDER BY created_at DESC LIMIT 1");
+            $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+            $result = $stmt->execute();
+            $license = $result->fetchArray(SQLITE3_ASSOC);
+            
+            if ($license) {
+                $license_key = $license['license_key'];
+                $status = $license['status'];
+                $expires_at = $license['expires_at'];
+                $device_id = $license['device_id'] ?: 'Not Activated';
+                
+                $db->close();
+                return $license_key . '|' . $status . '|' . date('Y-m-d', strtotime($expires_at)) . '|' . $device_id;
+            }
+            
+            $db->close();
+            return 'NOT_FOUND|No license assigned|N/A|Not Activated';
         }
-    } catch (PDOException $e) {
+        
+    } catch (Exception $e) {
         error_log("License query error: " . $e->getMessage());
+        return 'ERROR|Database error: ' . $e->getMessage() . '|N/A|Not Activated';
     }
-    
-    return generateDemoLicense($email);
-}
-
-// Generate demo license for testing
-function generateDemoLicense($email) {
-    $hash = substr(md5($email . 'zeahong_salt_' . time()), 0, 20);
-    $formatted = implode('-', str_split(strtoupper($hash), 5));
-    $expiry = date('Y-m-d', strtotime('+30 days'));
-    return $formatted . '|pending|' . $expiry . '|Not Activated';
-}
-
-// Generate secure license key
-function generateLicenseKey() {
-    $prefix = 'ZEAHONG-';
-    $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    $length = 16;
-    $key = '';
-    
-    for ($i = 0; $i < $length; $i++) {
-        $key .= $characters[rand(0, strlen($characters) - 1)];
-        if ($i == 3 || $i == 7 || $i == 11) {
-            $key .= '-';
-        }
-    }
-    
-    return $prefix . $key;
 }
 
 // Handle license API request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'get_license' && isset($_POST['email'])) {
-        $licenseInfo = getUserLicense($_POST['email'], $pdo);
+        $licenseInfo = getUserLicense($_POST['email']);
         echo $licenseInfo;
         exit;
     }
 }
+
+// Check if user is logged in via Firebase
+$isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
 ?>
 
 <!DOCTYPE html>
@@ -2155,7 +2143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
         });
 
-        // Update user license information
+        // Update user license information from SQLite database
         async function updateUserLicenseInfo(userEmail) {
             try {
                 console.log('Fetching license for:', userEmail);
@@ -2164,6 +2152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 formData.append('action', 'get_license');
                 formData.append('email', userEmail);
                 
+                // Send request to same page (license check is handled in PHP at the top)
                 const response = await fetch('', {
                     method: 'POST',
                     headers: {
@@ -2177,7 +2166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
                 
                 const data = await response.text();
-                console.log('License response:', data);
+                console.log('License response from server:', data);
                 
                 // Store license data globally
                 window.userLicenseData = data;
@@ -2212,11 +2201,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             const deviceDisplay = document.getElementById(deviceId);
             const copyBtn = document.getElementById(copyBtnId);
             
-            if (!data || data === 'NOT_FOUND' || data === 'INVALID') {
+            if (!data) {
+                // No data received
+                keyDisplay.innerHTML = '<span style="color: #e74c3c;">Connection error</span>';
+                keyDisplay.style.fontSize = '1.2rem';
+                statusDisplay.textContent = 'Error';
+                statusDisplay.className = 'info-value expired';
+                expiryDisplay.textContent = 'N/A';
+                deviceDisplay.textContent = 'N/A';
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                    copyBtn.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyBtn.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                }
+                
+                window.userLicenseKey = null;
+                
+            } else if (data.startsWith('NOT_FOUND')) {
                 // No license found
                 keyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
                 keyDisplay.style.fontSize = '1.2rem';
                 statusDisplay.textContent = 'No License';
+                statusDisplay.className = 'info-value expired';
+                expiryDisplay.textContent = 'N/A';
+                deviceDisplay.textContent = 'N/A';
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                    copyBtn.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyBtn.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                }
+                
+                window.userLicenseKey = null;
+                
+            } else if (data.startsWith('ERROR')) {
+                // Error in license retrieval
+                const errorMsg = data.split('|')[1] || 'Unknown error';
+                keyDisplay.innerHTML = `<span style="color: #e74c3c;">Error: ${errorMsg}</span>`;
+                keyDisplay.style.fontSize = '1.2rem';
+                statusDisplay.textContent = 'Error';
                 statusDisplay.className = 'info-value expired';
                 expiryDisplay.textContent = 'N/A';
                 deviceDisplay.textContent = 'N/A';
