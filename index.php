@@ -17,6 +17,101 @@ $file_sizes = [
 
 // Check if user is logged in via Firebase
 $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
+
+// Database connection for license management
+$host = 'localhost';
+$dbname = 'zeahong_trading';
+$username = 'root';
+$password = '';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    // If database connection fails, continue without it
+    $pdo = null;
+}
+
+// Function to get user license
+function getUserLicense($email, $pdo) {
+    if (!$pdo) {
+        return generateDemoLicense($email);
+    }
+    
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM licenses WHERE user_email = :email ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute([':email' => $email]);
+        $license = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($license) {
+            $status = $license['status'];
+            $expiry_date = $license['expiry_date'];
+            $device_id = $license['device_id'] ?: 'Not Activated';
+            
+            return $license['license_key'] . '|' . $status . '|' . $expiry_date . '|' . $device_id;
+        } else {
+            // Check if user has purchased any product
+            $stmt = $pdo->prepare("SELECT * FROM purchases WHERE user_email = :email AND status = 'completed'");
+            $stmt->execute([':email' => $email]);
+            $purchase = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($purchase) {
+                // Generate license for purchase
+                $licenseKey = generateLicenseKey();
+                $expiryDate = date('Y-m-d', strtotime('+1 year'));
+                
+                // Save to database
+                $stmt = $pdo->prepare("INSERT INTO licenses (user_email, license_key, status, expiry_date, product_id) VALUES (:email, :key, 'active', :expiry, :product)");
+                $stmt->execute([
+                    ':email' => $email,
+                    ':key' => $licenseKey,
+                    ':expiry' => $expiryDate,
+                    ':product' => $purchase['product_id']
+                ]);
+                
+                return $licenseKey . '|active|' . $expiryDate . '|Not Activated';
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("License query error: " . $e->getMessage());
+    }
+    
+    return generateDemoLicense($email);
+}
+
+// Generate demo license for testing
+function generateDemoLicense($email) {
+    $hash = substr(md5($email . 'zeahong_salt_' . time()), 0, 20);
+    $formatted = implode('-', str_split(strtoupper($hash), 5));
+    $expiry = date('Y-m-d', strtotime('+30 days'));
+    return $formatted . '|pending|' . $expiry . '|Not Activated';
+}
+
+// Generate secure license key
+function generateLicenseKey() {
+    $prefix = 'ZEAHONG-';
+    $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $length = 16;
+    $key = '';
+    
+    for ($i = 0; $i < $length; $i++) {
+        $key .= $characters[rand(0, strlen($characters) - 1)];
+        if ($i == 3 || $i == 7 || $i == 11) {
+            $key .= '-';
+        }
+    }
+    
+    return $prefix . $key;
+}
+
+// Handle license API request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'get_license' && isset($_POST['email'])) {
+        $licenseInfo = getUserLicense($_POST['email'], $pdo);
+        echo $licenseInfo;
+        exit;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -783,6 +878,10 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             color: #e74c3c;
         }
 
+        .info-value.pending {
+            color: #f39c12;
+        }
+
         /* Download Grid - Centered */
         .download-grid {
             display: grid;
@@ -1051,6 +1150,47 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             gap: 5px;
         }
 
+        /* License Actions */
+        .license-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .license-action-btn {
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .license-action-btn.activate {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .license-action-btn.renew {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+
+        .license-action-btn.transfer {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+        }
+
+        .license-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
         /* Footer - Centered */
         footer {
             width: 100%;
@@ -1179,6 +1319,16 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             .shop-grid,
             .blog-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .license-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .license-action-btn {
+                width: 100%;
+                max-width: 300px;
             }
         }
 
@@ -1693,7 +1843,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     
                     <div class="license-key-box">
                         <p style="color: #a0c8e0; margin-bottom: 15px;">Use this license key to activate your Expert Advisor in MetaTrader 5:</p>
-                        <a href="https://t.me/ZEAHONGMOD" style="color: #4dabf7; text-decoration: none; font-weight: 600;">Get License</a>
+                        
                         <div class="license-key-display" id="licenseKeyDisplayMain">
                             <i class="fas fa-spinner fa-spin"></i> Loading license key...
                         </div>
@@ -1705,16 +1855,28 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                         <div class="license-info">
                             <div class="info-item">
                                 <div class="info-label">Status</div>
-                                <div class="info-value active" id="licenseStatusMain">Active</div>
+                                <div class="info-value active" id="licenseStatusMain">Loading...</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">Expires</div>
-                                <div class="info-value" id="licenseExpiryMain">2024-12-31</div>
+                                <div class="info-value" id="licenseExpiryMain">Loading...</div>
                             </div>
                             <div class="info-item">
                                 <div class="info-label">Device</div>
-                                <div class="info-value" id="deviceStatusMain">Not Activated</div>
+                                <div class="info-value" id="deviceStatusMain">Loading...</div>
                             </div>
+                        </div>
+                        
+                        <div class="license-actions">
+                            <button class="license-action-btn activate" onclick="activateLicense()">
+                                <i class="fas fa-play-circle"></i> Activate License
+                            </button>
+                            <button class="license-action-btn renew" onclick="renewLicense()">
+                                <i class="fas fa-sync-alt"></i> Renew License
+                            </button>
+                            <button class="license-action-btn transfer" onclick="transferLicense()">
+                                <i class="fas fa-exchange-alt"></i> Transfer License
+                            </button>
                         </div>
                     </div>
                     
@@ -1744,6 +1906,27 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                             </button>
                             <button class="btn btn-secondary" onclick="window.open('https://t.me/ZEAHONGMOD', '_blank')" style="max-width: 200px;">
                                 <i class="fab fa-telegram"></i> Telegram Support
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Purchase License Section -->
+                    <div style="margin-top: 30px; padding: 25px; background: rgba(155, 89, 182, 0.1); border-radius: 10px; border-left: 4px solid #9b59b6;">
+                        <h3 style="color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-shopping-cart"></i> Purchase New License
+                        </h3>
+                        <p style="color: #a0c8e0; margin-bottom: 15px;">
+                            Don't have a license yet? Purchase one to unlock all features:
+                        </p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button class="btn" onclick="purchaseLicense('basic')" style="max-width: 200px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">
+                                <i class="fas fa-star"></i> Basic License
+                            </button>
+                            <button class="btn" onclick="purchaseLicense('pro')" style="max-width: 200px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">
+                                <i class="fas fa-crown"></i> Pro License
+                            </button>
+                            <button class="btn" onclick="purchaseLicense('ultimate')" style="max-width: 200px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                                <i class="fas fa-rocket"></i> Ultimate License
                             </button>
                         </div>
                     </div>
@@ -1790,6 +1973,9 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         const userAvatar = document.getElementById('userAvatar');
         const navAuth = document.getElementById('navAuth');
         const navMenu = document.getElementById('navMenu');
+
+        // Global variable for user license
+        window.userLicenseData = null;
 
         // Initialize
         init();
@@ -1945,6 +2131,11 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
             if (window.innerWidth <= 768) {
                 navMenu.classList.remove('active');
             }
+            
+            // Refresh license info when license section is shown
+            if (sectionId === 'license' && auth.currentUser) {
+                updateUserLicenseInfo(auth.currentUser.email);
+            }
         };
 
         // Toggle mobile menu
@@ -1973,7 +2164,7 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 formData.append('action', 'get_license');
                 formData.append('email', userEmail);
                 
-                const response = await fetch('login.php', {
+                const response = await fetch('', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -1988,35 +2179,60 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                 const data = await response.text();
                 console.log('License response:', data);
                 
+                // Store license data globally
+                window.userLicenseData = data;
+                
                 // Update both license displays
                 updateLicenseDisplay(data, 'licenseKeyDisplay', 'licenseStatus', 'licenseExpiry', 'deviceStatus', 'copyButton');
                 updateLicenseDisplay(data, 'licenseKeyDisplayMain', 'licenseStatusMain', 'licenseExpiryMain', 'deviceStatusMain', 'copyButtonMain');
                 
             } catch (error) {
                 console.error('Error fetching license info:', error);
-                const errorHtml = '<span style="color: #e74c3c;">Error loading license</span>';
+                const errorHtml = '<span style="color: #e74c3c;">Error loading license. Please try again.</span>';
                 document.getElementById('licenseKeyDisplay').innerHTML = errorHtml;
                 document.getElementById('licenseKeyDisplayMain').innerHTML = errorHtml;
+                
+                // Update status displays
+                document.getElementById('licenseStatus').textContent = 'Error';
+                document.getElementById('licenseStatus').className = 'info-value expired';
+                document.getElementById('licenseExpiry').textContent = 'N/A';
+                document.getElementById('deviceStatus').textContent = 'N/A';
+                
+                document.getElementById('licenseStatusMain').textContent = 'Error';
+                document.getElementById('licenseStatusMain').className = 'info-value expired';
+                document.getElementById('licenseExpiryMain').textContent = 'N/A';
+                document.getElementById('deviceStatusMain').textContent = 'N/A';
             }
         }
 
         function updateLicenseDisplay(data, keyDisplayId, statusId, expiryId, deviceId, copyBtnId) {
-            if (data === 'NOT_FOUND' || data === 'INVALID' || !data) {
+            const keyDisplay = document.getElementById(keyDisplayId);
+            const statusDisplay = document.getElementById(statusId);
+            const expiryDisplay = document.getElementById(expiryId);
+            const deviceDisplay = document.getElementById(deviceId);
+            const copyBtn = document.getElementById(copyBtnId);
+            
+            if (!data || data === 'NOT_FOUND' || data === 'INVALID') {
                 // No license found
-                document.getElementById(keyDisplayId).innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
-                document.getElementById(keyDisplayId).style.fontSize = '1.2rem';
-                document.getElementById(statusId).textContent = 'No License';
-                document.getElementById(statusId).className = 'info-value expired';
-                document.getElementById(expiryId).textContent = 'N/A';
-                document.getElementById(deviceId).textContent = 'N/A';
-                document.getElementById(copyBtnId).disabled = true;
-                document.getElementById(copyBtnId).innerHTML = '<i class="fas fa-ban"></i> No License Available';
-                document.getElementById(copyBtnId).style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                keyDisplay.innerHTML = '<span style="color: #e74c3c;">No license assigned</span>';
+                keyDisplay.style.fontSize = '1.2rem';
+                statusDisplay.textContent = 'No License';
+                statusDisplay.className = 'info-value expired';
+                expiryDisplay.textContent = 'N/A';
+                deviceDisplay.textContent = 'N/A';
+                
+                if (copyBtn) {
+                    copyBtn.disabled = true;
+                    copyBtn.innerHTML = '<i class="fas fa-ban"></i> No License Available';
+                    copyBtn.style.background = 'linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)';
+                }
+                
+                window.userLicenseKey = null;
                 
             } else if (data.includes('|')) {
                 // Parse license info
                 const parts = data.split('|');
-                console.log('Parsed parts:', parts);
+                console.log('Parsed license parts:', parts);
                 
                 if (parts.length >= 4) {
                     const licenseKey = parts[0];
@@ -2025,22 +2241,40 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
                     const device = parts[3];
                     
                     // Display license
-                    document.getElementById(keyDisplayId).textContent = licenseKey;
-                    document.getElementById(keyDisplayId).style.color = '#4bb543';
-                    document.getElementById(keyDisplayId).style.fontSize = '1.8rem';
-                    document.getElementById(statusId).textContent = status;
-                    document.getElementById(statusId).className = status === 'active' ? 'info-value active' : 'info-value expired';
-                    document.getElementById(expiryId).textContent = expiry;
-                    document.getElementById(deviceId).textContent = device || 'Not Activated';
+                    keyDisplay.textContent = licenseKey;
+                    keyDisplay.style.color = '#4bb543';
+                    keyDisplay.style.fontSize = '1.8rem';
+                    
+                    statusDisplay.textContent = status;
+                    
+                    // Set appropriate status class
+                    if (status === 'active') {
+                        statusDisplay.className = 'info-value active';
+                    } else if (status === 'expired') {
+                        statusDisplay.className = 'info-value expired';
+                    } else if (status === 'pending') {
+                        statusDisplay.className = 'info-value pending';
+                    } else {
+                        statusDisplay.className = 'info-value expired';
+                    }
+                    
+                    expiryDisplay.textContent = expiry;
+                    deviceDisplay.textContent = device || 'Not Activated';
                     
                     // Enable copy button
-                    document.getElementById(copyBtnId).disabled = false;
-                    document.getElementById(copyBtnId).innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
-                    document.getElementById(copyBtnId).style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                    if (copyBtn) {
+                        copyBtn.disabled = false;
+                        copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy License Key';
+                        copyBtn.style.background = 'linear-gradient(135deg, #4bb543 0%, #3a9d32 100%)';
+                    }
                     
                     // Store for copying
                     window.userLicenseKey = licenseKey;
+                } else {
+                    throw new Error('Invalid license data format');
                 }
+            } else {
+                throw new Error('Unexpected license response format');
             }
         }
 
@@ -2348,6 +2582,57 @@ $isLoggedIn = isset($_SESSION['firebase_user']) ? true : false;
         // Support functions
         window.contactSupport = function() {
             alert('Please email your license issues to: support@zeahongtrading.com\n\nWe will respond within 24 hours.');
+        };
+
+        // License Management Functions
+        window.activateLicense = function() {
+            if (!window.userLicenseKey) {
+                alert('You need a license to activate. Please purchase a license first.');
+                return;
+            }
+            
+            const deviceId = prompt('Enter your device ID (usually your MT5 account number or PC ID):');
+            if (deviceId) {
+                alert(`License activation request sent for device: ${deviceId}\n\nPlease wait for admin approval.`);
+                // Here you would normally send this to your server
+            }
+        };
+
+        window.renewLicense = function() {
+            if (!window.userLicenseKey) {
+                alert('You need a license to renew. Please purchase a license first.');
+                return;
+            }
+            
+            alert('License renewal requested!\n\nPlease contact @ZEAHONGMOD on Telegram to renew your license.');
+        };
+
+        window.transferLicense = function() {
+            if (!window.userLicenseKey) {
+                alert('You need a license to transfer. Please purchase a license first.');
+                return;
+            }
+            
+            const newEmail = prompt('Enter the email address to transfer the license to:');
+            if (newEmail) {
+                alert(`License transfer request sent to: ${newEmail}\n\nPlease wait for admin approval.`);
+            }
+        };
+
+        window.purchaseLicense = function(licenseType) {
+            const prices = {
+                'basic': '$49.99',
+                'pro': '$99.99',
+                'ultimate': '$199.99'
+            };
+            
+            const features = {
+                'basic': 'Basic features, 1 device, 1 year',
+                'pro': 'All features, 2 devices, 2 years',
+                'ultimate': 'All features + priority support, 5 devices, lifetime'
+            };
+            
+            alert(`Purchase ${licenseType.toUpperCase()} License\n\nPrice: ${prices[licenseType]}\nFeatures: ${features[licenseType]}\n\nPlease contact @ZEAHONGMOD on Telegram to complete your purchase.`);
         };
     </script>
 </body>
